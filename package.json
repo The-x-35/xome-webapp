@@ -1,0 +1,29 @@
+{
+  "name": "xome-webapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Xome for the web — a local-first AI agent at app.xome.bot. Runs models in-browser via WebGPU, or bring your own Claude/GPT/Gemini key. Connects to Gmail, Calendar, Slack, Notion, GitHub, and any MCP server.",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.79",
+    "idb": "^8.0.0",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.3"
+  }
+}

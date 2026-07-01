@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Xome web design system.
+   Ported 1:1 from the Flutter app's XomeTokens (lib/theme/xome_colors.dart):
+   light-default warm-neutral palette, refined dark mode, one switchable accent
+   (5 options, indigo default). Fonts match the marketing site:
+   Fraunces (display) · Geist (UI) · JetBrains Mono (code/labels).
+   Color tokens are indirected to runtime CSS variables so the same Tailwind
+   utilities resolve against whichever light/dark/accent palette is active.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  --color-stage: var(--stage);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Menlo", monospace;
+
+  --radius-card: 20px;
+  --radius-input: 14px;
+  --radius-sheet: 24px;
+
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ── LIGHT (default) ─────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --stage: #edebe6;
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-2: #f1efea;
+  --surface-3: #eae8e1;
+  --border: #e7e4dd;
+  --border-strong: #d9d5cc;
+  --text: #1b1a18;
+  --text-2: #6c6962;
+  --text-3: #9a968c;
+  --ink: #1b1a18;
+  --on-ink: #ffffff;
+  --success: #1c9c5f;
+  --success-soft: #e7f4ec;
+  --danger: #c44a40;
+  --danger-soft: #f7eae8;
+  --scrim: rgba(27, 26, 24, 0.32);
+  --shadow-card: 0 12px 28px -4px rgba(30, 28, 24, 0.07);
+  --shadow-composer: 0 12px 28px -6px rgba(30, 28, 24, 0.07);
+
+  /* accent — overridden by [data-accent] below; indigo default */
+  --accent: #5b57d1;
+  --accent-soft: color-mix(in srgb, var(--accent) 13%, #ffffff);
+  --accent-text: var(--accent);
+  --accent-ring: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* ── DARK ────────────────────────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+  --stage: #0e0e10;
+  --bg: #1a1a1c;
+  --surface: #232325;
+  --surface-2: #2b2b2e;
+  --surface-3: #323235;
+  --border: #343437;
+  --border-strong: #3f3f43;
+  --text: #f3f1ec;
+  --text-2: #a6a39c;
+  --text-3: #727069;
+  --ink: #f3f1ec;
+  --on-ink: #1a1a1c;
+  --success: #43c98a;
+  --success-soft: #163a2a;
+  --danger: #f08b82;
+  --danger-soft: #3a211f;
+  --scrim: rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 12px 28px -4px rgba(0, 0, 0, 0.35);
+  --shadow-composer: 0 12px 28px -6px rgba(0, 0, 0, 0.4);
+
+  --accent-soft: color-mix(in srgb, var(--accent) 26%, var(--surface));
+  --accent-text: color-mix(in srgb, var(--accent) 65%, #ffffff);
+  --accent-ring: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Switchable accents (data-accent on <html>) ──────────────────────────── */
+:root[data-accent="indigo"] { --accent: #5b57d1; }
+:root[data-accent="blue"]   { --accent: #2f6be0; }
+:root[data-accent="green"]  { --accent: #2f855a; }
+:root[data-accent="ink"]    { --accent: #1b1a18; }
+:root[data-accent="violet"] { --accent: #9a6bd1; }
+html.dark[data-accent="ink"] { --accent: #f3f1ec; }
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  background: var(--stage);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Thin, warm scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid var(--bg);
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ── Motion primitives (port of XomeMotion) ─────────────────────────────── */
+@keyframes xo-fade-slide {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.xo-fade-slide { animation: xo-fade-slide 0.42s var(--ease-emphasized) both; }
+
+@keyframes xo-thinking {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes xo-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.xo-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-3) 0%,
+    var(--surface-2) 50%,
+    var(--surface-3) 100%
+  );
+  background-size: 200% 100%;
+  animation: xo-shimmer 1.3s var(--ease-emphasized) infinite;
+}
+
+@keyframes xo-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.82); }
+}
+.xo-pulse { animation: xo-pulse 1.6s ease-in-out infinite; }
+
+@keyframes xo-spin { to { transform: rotate(360deg); } }
+.xo-spin { animation: xo-spin 0.7s linear infinite; }
+
+/* Pressable scale feedback */
+.xo-press { transition: transform 0.18s var(--ease-emphasized); }
+.xo-press:active { transform: scale(0.97); }
+
+/* Markdown rendering for assistant messages */
+.xo-md { line-height: 1.55; font-size: 15.5px; }
+.xo-md > *:first-child { margin-top: 0; }
+.xo-md > *:last-child { margin-bottom: 0; }
+.xo-md p { margin: 0.5em 0; }
+.xo-md h1, .xo-md h2, .xo-md h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; margin: 0.8em 0 0.4em; }
+.xo-md h1 { font-size: 1.5em; }
+.xo-md h2 { font-size: 1.3em; }
+.xo-md h3 { font-size: 1.12em; }
+.xo-md ul, .xo-md ol { margin: 0.5em 0; padding-left: 1.4em; }
+.xo-md li { margin: 0.2em 0; }
+.xo-md a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 2px; }
+.xo-md code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--surface-2);
+  padding: 0.1em 0.34em;
+  border-radius: 5px;
+}
+.xo-md pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+.xo-md pre code { background: none; padding: 0; font-size: 13px; }
+.xo-md blockquote {
+  border-left: 3px solid var(--border-strong);
+  padding-left: 12px;
+  margin: 0.6em 0;
+  font-style: italic;
+  color: var(--text-2);
+}
+.xo-md strong { font-weight: 600; }
+.xo-md hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
+.xo-md table { border-collapse: collapse; margin: 0.6em 0; font-size: 14px; }
+.xo-md th, .xo-md td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
