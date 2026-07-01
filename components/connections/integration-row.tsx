@@ -7,6 +7,7 @@ import { connectOAuth, disconnectOAuth } from "@/lib/integrations/oauth-client";
 import { setNotionToken, deleteNotionToken } from "@/lib/store/secrets";
 import { getPrefs, setPrefs } from "@/lib/store/prefs";
 import { emit } from "@/lib/store/bus";
+import { BrandTile } from "./brand-icons";
 
 export function IntegrationRow({
   descriptor,
@@ -79,12 +80,7 @@ export function IntegrationRow({
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
       <div className="flex items-center gap-3">
-        <span
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[15px] font-bold text-white"
-          style={{ background: descriptor.tint }}
-        >
-          {descriptor.label.charAt(0)}
-        </span>
+        <BrandTile id={descriptor.id} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-medium text-text">{descriptor.label}</span>

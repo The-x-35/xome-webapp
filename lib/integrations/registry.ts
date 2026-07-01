@@ -6,6 +6,7 @@ import { calendarTools } from "./calendar/calendar-tools";
 import { slackTools } from "./slack/slack-tools";
 import { notionTools } from "./notion/notion-tools";
 import { githubTools } from "./github/github-tools";
+import { solanaTools } from "./solana/solana-tools";
 
 export interface IntegrationDescriptor {
   id: string;
@@ -13,17 +14,17 @@ export interface IntegrationDescriptor {
   tagline: string;
   /** Brand-ish hue used by the connections row icon tile. */
   tint: string;
-  /** OAuth provider key for the connect flow ("google" | "slack" | "github" | "notion"). */
-  authKind: "google" | "slack" | "github" | "notion";
+  /** Connect flow: OAuth providers, Notion's pasted token, or Solana via Privy. */
+  authKind: "google" | "slack" | "github" | "notion" | "solana";
   scopes: string[];
 }
 
 export const INTEGRATIONS: IntegrationDescriptor[] = [
   {
-    id: "gmail",
-    label: "Gmail",
-    tagline: "Search, read, draft, and send email.",
-    tint: "#EA4335",
+    id: "google",
+    label: "Google",
+    tagline: "Gmail & Calendar — read, draft, send, and schedule.",
+    tint: "#4285F4",
     authKind: "google",
     scopes: [
       "openid",
@@ -31,17 +32,6 @@ export const INTEGRATIONS: IntegrationDescriptor[] = [
       "https://www.googleapis.com/auth/gmail.readonly",
       "https://www.googleapis.com/auth/gmail.send",
       "https://www.googleapis.com/auth/gmail.modify",
-    ],
-  },
-  {
-    id: "calendar",
-    label: "Google Calendar",
-    tagline: "List, create, update, and delete events.",
-    tint: "#1A73E8",
-    authKind: "google",
-    scopes: [
-      "openid",
-      "email",
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/calendar.events",
     ],
@@ -82,6 +72,14 @@ export const INTEGRATIONS: IntegrationDescriptor[] = [
     authKind: "github",
     scopes: ["repo", "read:user", "notifications"],
   },
+  {
+    id: "solana",
+    label: "Solana",
+    tagline: "Connect a wallet to check balances, send, and swap tokens.",
+    tint: "#14F195",
+    authKind: "solana",
+    scopes: [],
+  },
 ];
 
 export function integrationById(id: string): IntegrationDescriptor | undefined {
@@ -96,5 +94,6 @@ export async function buildIntegrationTools(enabled: Set<string>): Promise<Tool[
   if (enabled.has("slack")) tools.push(...slackTools);
   if (enabled.has("notion")) tools.push(...notionTools);
   if (enabled.has("github")) tools.push(...githubTools);
+  if (enabled.has("solana")) tools.push(...solanaTools);
   return tools;
 }

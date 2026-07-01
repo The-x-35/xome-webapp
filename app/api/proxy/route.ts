@@ -33,6 +33,9 @@ const ALLOWED_HOST_SUFFIXES = [
   "frankfurter.app",
   "libretranslate.de",
   "libretranslate.com",
+  // Solana — Jupiter aggregator (quotes, swaps, prices). RPC goes through the
+  // dedicated /api/solana/rpc route, not this proxy.
+  "jup.ag",
 ];
 
 function hostAllowed(host: string): boolean {

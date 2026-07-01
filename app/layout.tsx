@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/chrome/theme";
+import { SolanaProvider } from "@/components/chrome/solana-provider";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -66,7 +67,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body className={`${fraunces.variable} ${geist.variable} ${mono.variable}`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <SolanaProvider>{children}</SolanaProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

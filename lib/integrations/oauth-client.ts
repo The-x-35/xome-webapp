@@ -5,6 +5,21 @@ import { proxyFetch, type ProxyRequest, type ProxyResult } from "@/lib/net/proxy
 import { getPrefs, setPrefs } from "@/lib/store/prefs";
 import { emit } from "@/lib/store/bus";
 
+/** Integrations that share one Google OAuth token + account. */
+const GOOGLE_IDS = new Set(["google", "gmail", "calendar"]);
+
+/** Secrets key under which an integration's OAuth token is stored. Gmail and
+ *  Calendar both read/write the single "google" token. */
+function tokenKey(integration: string): string {
+  return GOOGLE_IDS.has(integration) ? "google" : integration;
+}
+
+/** Tool integration-ids a connection turns on. Connecting Google enables both
+ *  the gmail and calendar tool groups off the one token. */
+function toolIdsFor(integration: string): string[] {
+  return integration === "google" ? ["gmail", "calendar"] : [integration];
+}
+
 /** Open the OAuth popup and resolve once the callback posts the token back. */
 export function connectOAuth(integration: string): Promise<OAuthToken> {
   return new Promise((resolve, reject) => {
@@ -34,9 +49,9 @@ export function connectOAuth(integration: string): Promise<OAuthToken> {
         reject(new Error("OAuth integration mismatch"));
         return;
       }
-      await setOAuth(integration, d.token as OAuthToken);
+      await setOAuth(tokenKey(integration), d.token as OAuthToken);
       const enabled = new Set(getPrefs().enabledIntegrations);
-      enabled.add(integration);
+      toolIdsFor(integration).forEach((id) => enabled.add(id));
       setPrefs({ enabledIntegrations: [...enabled] });
       emit("connections");
       resolve(d.token as OAuthToken);
@@ -54,9 +69,9 @@ export function connectOAuth(integration: string): Promise<OAuthToken> {
 }
 
 export async function disconnectOAuth(integration: string): Promise<void> {
-  await deleteOAuth(integration);
+  await deleteOAuth(tokenKey(integration));
   const enabled = new Set(getPrefs().enabledIntegrations);
-  enabled.delete(integration);
+  toolIdsFor(integration).forEach((id) => enabled.delete(id));
   setPrefs({ enabledIntegrations: [...enabled] });
   emit("connections");
 }
@@ -89,12 +104,13 @@ export async function authedFetch(
   integration: string,
   reqArgs: Omit<ProxyRequest, "headers"> & { headers?: Record<string, string> },
 ): Promise<ProxyResult> {
-  let token = await getOAuth(integration);
+  const key = tokenKey(integration);
+  let token = await getOAuth(key);
   if (!token) throw new Error(`${integration} is not connected.`);
 
   // Proactive refresh when expiring within 60s.
   if (token.expiresAt && token.expiresAt - Date.now() < 60_000 && token.refreshToken) {
-    token = (await refresh(integration, token)) ?? token;
+    token = (await refresh(key, token)) ?? token;
   }
 
   const withAuth = (t: OAuthToken): Record<string, string> => ({
@@ -104,7 +120,7 @@ export async function authedFetch(
 
   let res = await proxyFetch({ ...reqArgs, headers: withAuth(token) });
   if (res.status === 401 && token.refreshToken) {
-    const refreshed = await refresh(integration, token);
+    const refreshed = await refresh(key, token);
     if (refreshed) res = await proxyFetch({ ...reqArgs, headers: withAuth(refreshed) });
   }
   return res;
@@ -112,6 +128,6 @@ export async function authedFetch(
 
 /** The account label shown in the system prompt / connections row. */
 export async function accountFor(integration: string): Promise<string | null> {
-  const t = await getOAuth(integration);
+  const t = await getOAuth(tokenKey(integration));
   return t?.account ?? null;
 }

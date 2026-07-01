@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useChat } from "@/lib/agent/use-chat";
 import { MessageBubble, LiveAssistant } from "./messages";
 import { Composer } from "./composer";
@@ -21,17 +20,19 @@ const STARTERS = [
 ];
 
 export function ChatView({ conversationId }: { conversationId: string | null }) {
-  const router = useRouter();
   const { state, send, stop, resolveApproval, dismissError } = useChat(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // When a brand-new conversation gets its id, reflect it in the URL.
+  // When a brand-new conversation gets its id, reflect it in the URL *without* a
+  // Next.js navigation. A router.replace() here would remount ChatView and
+  // reload the conversation from IndexedDB mid-stream, dropping the first
+  // response — the classic "only replies on the second message" bug.
   useEffect(() => {
     if (state.conversationId && state.conversationId !== conversationId) {
-      router.replace(`/chat/${state.conversationId}`);
+      window.history.replaceState(null, "", `/chat/${state.conversationId}`);
     }
-  }, [state.conversationId, conversationId, router]);
+  }, [state.conversationId, conversationId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -89,6 +89,19 @@ export function providerConfig(p: AuthProvider, origin?: string): ProviderConfig
 
 /** integration id → { provider, scopes }. */
 export const INTEGRATION_AUTH: Record<string, { provider: AuthProvider; scopes: string[] }> = {
+  // One Google connection grants both Gmail and Calendar (mirrors the app).
+  google: {
+    provider: "google",
+    scopes: [
+      "openid",
+      "email",
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.events",
+    ],
+  },
   gmail: {
     provider: "google",
     scopes: [

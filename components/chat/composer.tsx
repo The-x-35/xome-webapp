@@ -82,9 +82,14 @@ export function Composer({
     r.start();
   };
 
-  const micAvailable = typeof window !== "undefined" &&
+  // Detected after mount so SSR and the first client render agree (the mic
+  // button depends on browser APIs and must not differ during hydration).
+  const [micAvailable, setMicAvailable] = useState(false);
+  useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    const W = window as any;
+    setMicAvailable(!!(W.SpeechRecognition || W.webkitSpeechRecognition));
+  }, []);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-3 pb-4 pt-1">
@@ -122,6 +127,7 @@ export function Composer({
           }}
           rows={1}
           placeholder={listening ? "Listening…" : "Message Xome"}
+          style={{ outline: "none" }}
           className="max-h-52 w-full resize-none bg-transparent px-1.5 py-1.5 text-[15px] leading-relaxed text-text outline-none placeholder:text-text-3"
         />
         <div className="flex items-center gap-1 pt-1">
