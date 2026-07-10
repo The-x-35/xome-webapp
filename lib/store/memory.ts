@@ -25,8 +25,25 @@ export async function readMemory(): Promise<string> {
   return rec?.content ?? DEFAULT_MEMORY;
 }
 
+let undoSnapshot: string | null = null;
+
 export async function writeMemory(content: string): Promise<void> {
+  // Keep the previous content so the last change can be undone (undo toast).
+  try {
+    undoSnapshot = await readMemory();
+  } catch {
+    undoSnapshot = null;
+  }
   await (await db()).put("memory", { id: ID, content, updatedAt: Date.now() });
+}
+
+/** Restore memory to what it was before the most recent write. */
+export async function undoMemoryChange(): Promise<boolean> {
+  if (undoSnapshot == null) return false;
+  const prev = undoSnapshot;
+  undoSnapshot = null;
+  await (await db()).put("memory", { id: ID, content: prev, updatedAt: Date.now() });
+  return true;
 }
 
 export async function resetMemory(): Promise<void> {

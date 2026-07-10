@@ -2,9 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ModelMenu } from "./model-menu";
-import { IconSend, IconStop, IconMic, IconPaperclip } from "@/components/chrome/icons";
+import { IconSend, IconStop, IconMic, IconPaperclip, IconBolt } from "@/components/chrome/icons";
 import type { ImageAttachment } from "@/lib/agent/chat-message";
+import { listSkills } from "@/lib/store/skills";
+import { on } from "@/lib/store/bus";
 import { cn } from "@/lib/utils";
+
+interface SlashCommand {
+  name: string;
+  description: string;
+  builtin?: boolean;
+}
+
+const BUILTIN_COMMANDS: SlashCommand[] = [
+  { name: "compact", description: "Summarize older messages to free up context", builtin: true },
+];
 
 // Minimal SpeechRecognition typing (Web Speech API).
 type SR = { start: () => void; stop: () => void; onresult: ((e: { results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }> }) => void) | null; onend: (() => void) | null; continuous: boolean; interimResults: boolean; lang: string };
@@ -21,9 +33,31 @@ export function Composer({
   const [text, setText] = useState("");
   const [images, setImages] = useState<ImageAttachment[]>([]);
   const [listening, setListening] = useState(false);
+  const [commands, setCommands] = useState<SlashCommand[]>(BUILTIN_COMMANDS);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const recogRef = useRef<SR | null>(null);
+
+  // Load skills as slash commands (refreshed when the skills store changes).
+  useEffect(() => {
+    const load = () =>
+      listSkills()
+        .then((skills) =>
+          setCommands([
+            ...BUILTIN_COMMANDS,
+            ...skills.filter((s) => s.enabled).map((s) => ({ name: s.name, description: s.description })),
+          ]),
+        )
+        .catch(() => {});
+    load();
+    return on("skills", load);
+  }, []);
+
+  // Slash menu: visible while the draft is a bare "/token" (no space yet).
+  const slashMatch = text.match(/^\/([a-z0-9-]*)$/i);
+  const slashOptions = slashMatch
+    ? commands.filter((c) => c.name.startsWith(slashMatch[1].toLowerCase())).slice(0, 6)
+    : [];
 
   useEffect(() => {
     const ta = taRef.current;
@@ -114,7 +148,31 @@ export function Composer({
         </div>
       )}
 
-      <div className="rounded-[26px] border border-border-strong bg-surface px-3 py-2 shadow-[var(--shadow-composer)]">
+      <div className="relative rounded-[26px] border border-border-strong bg-surface px-3 py-2 shadow-[var(--shadow-composer)]">
+        {slashOptions.length > 0 && (
+          <div className="absolute bottom-full left-2 z-30 mb-2 w-72 overflow-hidden rounded-2xl border border-border bg-surface p-1.5 shadow-[var(--shadow-card)]">
+            <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
+              Commands &amp; skills
+            </div>
+            {slashOptions.map((c) => (
+              <button
+                key={c.name}
+                onClick={() => {
+                  setText(`/${c.name} `);
+                  taRef.current?.focus();
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left hover:bg-surface-2"
+              >
+                <IconBolt width={13} height={13} className="shrink-0 text-accent" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-mono text-[12.5px] text-text">/{c.name}</span>
+                  {c.description && <span className="block truncate text-[11.5px] text-text-3">{c.description}</span>}
+                </span>
+                {c.builtin && <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-text-3">built-in</span>}
+              </button>
+            ))}
+          </div>
+        )}
         <textarea
           ref={taRef}
           value={text}

@@ -27,6 +27,10 @@ export interface ConversationRecord {
   createdAt: number;
   updatedAt: number;
   pinned: boolean;
+  /** Hidden from the sidebar, kept in History (non-destructive). */
+  archived?: boolean;
+  /** Cumulative token usage across turns (cloud providers). */
+  usage?: { input: number; output: number };
   /** Optional per-conversation provider/model override. */
   providerOverride?: string | null;
   modelOverride?: string | null;
@@ -63,6 +67,8 @@ export interface AutomationRecord {
   /** Integrations this automation is pre-approved to write to. */
   allowedWrites: string[];
   provider: string;
+  /** Last time the in-tab scheduler executed this automation. */
+  lastRunAt?: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -76,6 +82,23 @@ export interface AuditRecord {
   outcome: string;
 }
 
+/** A user-authored skill (SKILL.md-compatible: frontmatter + markdown body).
+ *  Matched skills are injected into the system prompt for the turn. */
+export interface SkillRecord {
+  id: string;
+  /** Slug-like name, also the /slash-command ("meeting-notes"). */
+  name: string;
+  /** One-line description; also used for lexical matching. */
+  description: string;
+  /** Explicit trigger phrases that activate the skill. */
+  triggers: string[];
+  /** Markdown instructions injected when the skill activates. */
+  content: string;
+  enabled: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
 interface XomeDB extends DBSchema {
   conversations: { key: string; value: ConversationRecord; indexes: { updatedAt: number } };
   memory: { key: string; value: { id: string; content: string; updatedAt: number } };
@@ -83,6 +106,9 @@ interface XomeDB extends DBSchema {
   mcpServers: { key: string; value: McpServerRecord };
   automations: { key: string; value: AutomationRecord };
   audit: { key: string; value: AuditRecord; indexes: { automationId: string } };
+  skills: { key: string; value: SkillRecord };
+  /** Persisted FileSystem handles (workspace folder). Structured-cloneable. */
+  handles: { key: string; value: { id: string; handle: FileSystemDirectoryHandle; name: string } };
 }
 
 let dbp: Promise<IDBPDatabase<XomeDB>> | null = null;
@@ -92,16 +118,24 @@ export function db(): Promise<IDBPDatabase<XomeDB>> {
     return Promise.reject(new Error("IndexedDB unavailable on the server"));
   }
   if (!dbp) {
-    dbp = openDB<XomeDB>("xome", 1, {
-      upgrade(d) {
-        const conv = d.createObjectStore("conversations", { keyPath: "id" });
-        conv.createIndex("updatedAt", "updatedAt");
-        d.createObjectStore("memory", { keyPath: "id" });
-        d.createObjectStore("secrets", { keyPath: "id" });
-        d.createObjectStore("mcpServers", { keyPath: "id" });
-        d.createObjectStore("automations", { keyPath: "id" });
-        const audit = d.createObjectStore("audit", { keyPath: "id" });
-        audit.createIndex("automationId", "automationId");
+    dbp = openDB<XomeDB>("xome", 3, {
+      upgrade(d, oldVersion) {
+        if (oldVersion < 1) {
+          const conv = d.createObjectStore("conversations", { keyPath: "id" });
+          conv.createIndex("updatedAt", "updatedAt");
+          d.createObjectStore("memory", { keyPath: "id" });
+          d.createObjectStore("secrets", { keyPath: "id" });
+          d.createObjectStore("mcpServers", { keyPath: "id" });
+          d.createObjectStore("automations", { keyPath: "id" });
+          const audit = d.createObjectStore("audit", { keyPath: "id" });
+          audit.createIndex("automationId", "automationId");
+        }
+        if (oldVersion < 2) {
+          d.createObjectStore("skills", { keyPath: "id" });
+        }
+        if (oldVersion < 3) {
+          d.createObjectStore("handles", { keyPath: "id" });
+        }
       },
     });
   }

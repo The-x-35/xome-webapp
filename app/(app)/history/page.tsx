@@ -2,13 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { listConversations, deleteConversation, saveConversation } from "@/lib/store/conversations";
+import { listConversations, deleteConversation, saveConversation, setArchived, forkConversation } from "@/lib/store/conversations";
 import type { ConversationRecord } from "@/lib/store/db";
 import { emit, on } from "@/lib/store/bus";
 import { EmptyState } from "@/components/ui/index";
 import { Mark } from "@/components/ui/mark";
 import { IconSearch, IconTrash, IconPin, IconChat } from "@/components/chrome/icons";
 import { timeAgo, dayBucket } from "@/lib/utils";
+
+function formatTokens(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
 
 export default function HistoryPage() {
   const router = useRouter();
@@ -32,13 +36,25 @@ export default function HistoryPage() {
   }, [convos, q]);
 
   const groups = useMemo(() => {
-    const g: Record<string, ConversationRecord[]> = { Pinned: [], Today: [], Yesterday: [], Earlier: [] };
+    const g: Record<string, ConversationRecord[]> = { Pinned: [], Today: [], Yesterday: [], Earlier: [], Archived: [] };
     for (const c of filtered) {
-      if (c.pinned) g.Pinned.push(c);
+      if (c.archived) g.Archived.push(c);
+      else if (c.pinned) g.Pinned.push(c);
       else g[dayBucket(c.updatedAt)].push(c);
     }
     return g;
   }, [filtered]);
+
+  const archive = async (c: ConversationRecord) => {
+    await setArchived(c.id, !c.archived);
+    emit("conversations");
+  };
+
+  const fork = async (c: ConversationRecord) => {
+    const copy = await forkConversation(c.id);
+    emit("conversations");
+    if (copy) router.push(`/chat/${copy.id}`);
+  };
 
   const togglePin = async (c: ConversationRecord) => {
     c.pinned = !c.pinned;
@@ -93,11 +109,20 @@ export default function HistoryPage() {
                           <span className="block truncate text-[14.5px] font-medium text-text">{c.title}</span>
                           <span className="block truncate text-[12.5px] text-text-2">
                             {c.messages.findLast?.((m) => m.role === "assistant" || m.role === "user")?.content?.slice(0, 80) ?? `${c.messages.length} messages`}
+                            {c.usage && (c.usage.input || c.usage.output) ? (
+                              <span className="ml-1.5 text-text-3">· {formatTokens(c.usage.input + c.usage.output)} tokens</span>
+                            ) : null}
                           </span>
                         </span>
                         <span className="shrink-0 text-[11.5px] text-text-3">{timeAgo(c.updatedAt)}</span>
                       </button>
                       <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+                        <button onClick={() => fork(c)} title="Fork conversation" className="grid h-8 w-8 place-items-center rounded-full text-[13px] text-text-3 hover:bg-surface-2 hover:text-text">
+                          ⑂
+                        </button>
+                        <button onClick={() => archive(c)} title={c.archived ? "Unarchive" : "Archive"} className="grid h-8 w-8 place-items-center rounded-full text-[13px] text-text-3 hover:bg-surface-2 hover:text-text">
+                          {c.archived ? "↩" : "🗄"}
+                        </button>
                         <button onClick={() => togglePin(c)} title={c.pinned ? "Unpin" : "Pin"} className="grid h-8 w-8 place-items-center rounded-full text-text-3 hover:bg-surface-2 hover:text-text">
                           <IconPin width={16} height={16} />
                         </button>

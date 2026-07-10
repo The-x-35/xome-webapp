@@ -3,7 +3,7 @@
 /** Tiny cross-component event bus for store mutations (conversations changed,
  *  connections changed) so the sidebar / lists refresh without prop drilling. */
 
-type Topic = "conversations" | "connections" | "prefs";
+type Topic = "conversations" | "connections" | "prefs" | "skills" | "runs";
 
 export function emit(topic: Topic): void {
   if (typeof window !== "undefined") {

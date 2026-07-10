@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useChat } from "@/lib/agent/use-chat";
-import { MessageBubble, LiveAssistant } from "./messages";
+import { MessageBubble, LiveAssistant, ToolRunGroup } from "./messages";
+import type { ChatMessage, ImageAttachment } from "@/lib/agent/chat-message";
 import { Composer } from "./composer";
 import { ApprovalSheet } from "./approval-sheet";
 import { StatusPill } from "@/components/ui/index";
@@ -10,6 +11,7 @@ import { Mark } from "@/components/ui/mark";
 import { Spinner } from "@/components/ui/index";
 import { IconX } from "@/components/chrome/icons";
 import { getPrefs } from "@/lib/store/prefs";
+import { undoMemoryChange } from "@/lib/store/memory";
 
 const STARTERS = [
   "Summarize my unread email and list the action items",
@@ -20,9 +22,37 @@ const STARTERS = [
 ];
 
 export function ChatView({ conversationId }: { conversationId: string | null }) {
-  const { state, send, stop, resolveApproval, dismissError } = useChat(conversationId);
+  const { state, send, stop, resolveApproval, dismissError, compact } = useChat(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Memory-change undo toast: appears for 6s after a memory_* tool succeeds.
+  const [memoryToast, setMemoryToast] = useState(false);
+  const lastMemoryWrite = useRef<string | null>(null);
+  useEffect(() => {
+    const m = [...state.messages]
+      .reverse()
+      .find((x) => x.role === "tool" && x.toolName?.startsWith("memory_") && x.toolStatus === "ok");
+    if (m && m.id !== lastMemoryWrite.current) {
+      lastMemoryWrite.current = m.id;
+      setMemoryToast(true);
+      const t = setTimeout(() => setMemoryToast(false), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [state.messages]);
+
+  // Composer commands: /compact is handled here; everything else is a message
+  // (including /skill-name invocations, which use-chat resolves).
+  const handleSend = useCallback(
+    (text: string, images?: ImageAttachment[]) => {
+      if (text.trim() === "/compact") {
+        void compact();
+        return;
+      }
+      send(text, images);
+    },
+    [send, compact],
+  );
 
   // When a brand-new conversation gets its id, reflect it in the URL *without* a
   // Next.js navigation. A router.replace() here would remount ChatView and
@@ -67,9 +97,13 @@ export function ChatView({ conversationId }: { conversationId: string | null }) 
           </div>
         ) : (
           <div className="mx-auto w-full max-w-3xl px-3 py-6">
-            {state.messages.map((m) => (
-              <MessageBubble key={m.id} message={m} />
-            ))}
+            {groupMessages(state.messages).map((item) =>
+              Array.isArray(item) ? (
+                <ToolRunGroup key={item[0].id} messages={item} />
+              ) : (
+                <MessageBubble key={item.id} message={item} />
+              ),
+            )}
             {(state.liveText || (state.running && !state.statusText)) && (
               <LiveAssistant text={state.liveText} thinking={state.liveThinking} />
             )}
@@ -80,6 +114,19 @@ export function ChatView({ conversationId }: { conversationId: string | null }) 
 
       {/* Status + error rail */}
       <div className="mx-auto w-full max-w-3xl px-3">
+        {!state.running && state.suggestions.length > 0 && (
+          <div className="flex flex-wrap gap-2 pb-2">
+            {state.suggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => handleSend(s)}
+                className="xo-press rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12.5px] text-text-2 transition hover:border-accent hover:text-text"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         {state.statusText && (
           <div className="pb-1">
             <StatusPill icon={<Spinner size={13} />}>{state.statusText}</StatusPill>
@@ -93,14 +140,59 @@ export function ChatView({ conversationId }: { conversationId: string | null }) 
         )}
       </div>
 
-      <Composer running={state.running} onSend={send} onStop={stop} />
+      {memoryToast && (
+        <div className="pointer-events-none fixed bottom-24 left-1/2 z-40 -translate-x-1/2">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border bg-surface px-4 py-2 shadow-[var(--shadow-card)]">
+            <span className="text-[13px] text-text-2">Memory updated</span>
+            <button
+              onClick={async () => {
+                await undoMemoryChange();
+                setMemoryToast(false);
+              }}
+              className="text-[13px] font-semibold text-accent-text hover:underline"
+            >
+              Undo
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Composer running={state.running} onSend={handleSend} onStop={stop} />
 
       {state.pendingApproval && (
         <ApprovalSheet
           req={state.pendingApproval.req}
-          onResolve={(approved, remember) => resolveApproval(approved, remember)}
+          onResolve={(approved, remember, always) => resolveApproval(approved, remember, always)}
         />
       )}
     </div>
   );
+}
+
+/** Group consecutive tool messages into one timeline block. Plan/artifact tool
+ *  messages render standalone; only the latest plan_update survives (it always
+ *  carries the full, current checklist). */
+function groupMessages(messages: ChatMessage[]): Array<ChatMessage | ChatMessage[]> {
+  const out: Array<ChatMessage | ChatMessage[]> = [];
+  let planIdx = -1;
+  for (const m of messages) {
+    if (m.role === "tool" && m.toolName === "plan_update" && m.toolStatus === "ok") {
+      if (planIdx >= 0) out.splice(planIdx, 1);
+      out.push(m);
+      planIdx = out.length - 1;
+      continue;
+    }
+    if (m.role === "tool" && m.toolName === "present_artifact" && m.toolStatus === "ok") {
+      out.push(m);
+      continue;
+    }
+    const last = out[out.length - 1];
+    if (m.role === "tool") {
+      if (Array.isArray(last)) last.push(m);
+      else out.push([m]);
+    } else {
+      out.push(m);
+    }
+  }
+  return out;
 }

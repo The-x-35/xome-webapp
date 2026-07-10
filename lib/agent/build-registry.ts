@@ -7,6 +7,8 @@ import { webTools } from "@/lib/integrations/web/web-tools";
 import { deviceTools } from "@/lib/integrations/device/device-tools";
 import { buildMcpTools } from "@/lib/integrations/mcp/mcp-tools";
 import { buildIntegrationTools } from "@/lib/integrations/registry";
+import { workspaceTools } from "@/lib/integrations/workspace/workspace-tools";
+import { workspaceName } from "@/lib/integrations/workspace/workspace-bridge";
 
 /**
  * Assemble the full tool registry for a turn. Always includes builtins, memory,
@@ -27,6 +29,13 @@ export async function buildRegistry(enabledIntegrations: Set<string>): Promise<T
     reg.registerAll(await buildIntegrationTools(enabledIntegrations));
   } catch {
     /* integration module not ready / not connected — skip */
+  }
+
+  // Local folder workspace — only when a folder is connected.
+  try {
+    if (await workspaceName()) reg.registerAll(workspaceTools);
+  } catch {
+    /* no workspace */
   }
 
   // MCP servers.

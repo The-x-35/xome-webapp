@@ -18,6 +18,9 @@ import {
 import { listConversations } from "@/lib/store/conversations";
 import type { ConversationRecord } from "@/lib/store/db";
 import { on } from "@/lib/store/bus";
+import { runningIds } from "@/lib/agent/run-manager";
+import { startScheduler } from "@/lib/automations/scheduler";
+import { Spinner } from "@/components/ui/index";
 import { cn, timeAgo } from "@/lib/utils";
 
 const NAV = [
@@ -35,10 +38,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const load = () => listConversations().then((c) => setConvos(c.slice(0, 30)));
+    const load = () => listConversations().then((c) => setConvos(c.filter((x) => !x.archived).slice(0, 30)));
     load();
     return on("conversations", load);
   }, []);
+
+  // Background-run indicator: which conversations have live agent runs.
+  const [running, setRunning] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const sync = () => setRunning(runningIds());
+    sync();
+    return on("runs", sync);
+  }, []);
+
+  // In-tab automation scheduler (time_of_day automations while Xome is open).
+  useEffect(() => startScheduler(), []);
 
   useEffect(() => setMobileOpen(false), [pathname]);
 
@@ -79,9 +93,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           >
             <span className="min-w-0 flex-1 truncate">{c.pinned ? "📌 " : ""}{c.title}</span>
-            <span className="shrink-0 text-[11px] text-text-3 opacity-0 group-hover:opacity-100">
-              {timeAgo(c.updatedAt)}
-            </span>
+            {running.has(c.id) ? (
+              <span className="shrink-0"><Spinner size={12} /></span>
+            ) : (
+              <span className="shrink-0 text-[11px] text-text-3 opacity-0 group-hover:opacity-100">
+                {timeAgo(c.updatedAt)}
+              </span>
+            )}
           </Link>
         ))}
       </div>

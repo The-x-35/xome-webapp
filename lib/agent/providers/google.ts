@@ -73,6 +73,10 @@ export const googleProvider: LlmProvider = {
       if (frame.data === "[DONE]") break;
       let evt: Record<string, unknown>;
       try { evt = JSON.parse(frame.data); } catch { continue; }
+      const meta = evt.usageMetadata as Record<string, number> | undefined;
+      if (meta?.promptTokenCount || meta?.candidatesTokenCount) {
+        yield { kind: "usage", inputTokens: meta.promptTokenCount ?? 0, outputTokens: meta.candidatesTokenCount ?? 0 };
+      }
       const cand = (evt.candidates as Array<Record<string, unknown>>)?.[0];
       const parts = ((cand?.content as Record<string, unknown>)?.parts as Array<Record<string, unknown>>) ?? [];
       for (const part of parts) {

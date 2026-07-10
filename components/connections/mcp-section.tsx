@@ -55,6 +55,22 @@ export function McpSection() {
     load();
   };
 
+  const [testing, setTesting] = useState<string | null>(null);
+  const test = async (s: McpServerRecord) => {
+    setTesting(s.id);
+    try {
+      const client = new McpClient(s.url, s.bearerToken ?? null);
+      await client.initialize();
+      const tools = await client.listTools();
+      await saveMcpServer({ ...s, tools, status: "ok", lastError: null });
+    } catch (e) {
+      await saveMcpServer({ ...s, status: "error", lastError: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setTesting(null);
+      load();
+    }
+  };
+
   const remove = async (s: McpServerRecord) => {
     if (confirm(`Remove MCP server "${s.name}"?`)) {
       await deleteMcpServer(s.id);
@@ -80,10 +96,18 @@ export function McpSection() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-medium text-text">{s.name}</span>
-                  <Tag kind={s.status === "error" ? "warning" : "neutral"}>{s.tools.length} tools</Tag>
+                  {s.status === "ok" && <Tag kind="success" dot>Connected</Tag>}
+                  {s.status === "error" && <Tag kind="warning">Failed</Tag>}
+                  <Tag kind="neutral">{s.tools.length} tools</Tag>
                 </div>
                 <div className="mt-0.5 truncate font-mono text-[12px] text-text-2">{s.url}</div>
+                {s.status === "error" && s.lastError && (
+                  <div className="mt-0.5 truncate text-[11.5px] text-danger">{s.lastError}</div>
+                )}
               </div>
+              <Button variant="text" className="!px-2 !py-1 text-[12.5px]" onClick={() => test(s)} disabled={testing === s.id}>
+                {testing === s.id ? <Spinner size={13} /> : "Test"}
+              </Button>
               <Toggle on={s.enabled} onChange={() => toggle(s)} />
               <button onClick={() => remove(s)} className="grid h-8 w-8 place-items-center rounded-full text-text-3 hover:bg-surface-2 hover:text-danger">
                 <IconTrash width={16} height={16} />

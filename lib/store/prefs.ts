@@ -28,6 +28,9 @@ export interface Prefs {
   searchEngine: "tavily" | "brave" | "duckduckgo";
   voiceOut: boolean;
   pushToTalk: boolean;
+  /** Tools the user has permanently approved ("always allow"). Money-moving
+   *  tools can never appear here (see NEVER_ALWAYS_ALLOW in consent.ts). */
+  toolAllowlist: string[];
 }
 
 const KEY = "xome.prefs";
@@ -44,6 +47,7 @@ export const DEFAULTS: Prefs = {
   searchEngine: "duckduckgo",
   voiceOut: false,
   pushToTalk: true,
+  toolAllowlist: [],
 };
 
 type Listener = (p: Prefs) => void;

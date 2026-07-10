@@ -95,6 +95,12 @@ export const anthropicProvider: LlmProvider = {
           try { parsed = b.json ? JSON.parse(b.json) : {}; } catch { /* keep {} */ }
           yield { kind: "tool_call", id: b.id, name: b.name, args: parsed };
         }
+      } else if (type === "message_start") {
+        const usage = (evt.message as Record<string, unknown>)?.usage as Record<string, number> | undefined;
+        if (usage?.input_tokens) yield { kind: "usage", inputTokens: usage.input_tokens, outputTokens: 0 };
+      } else if (type === "message_delta") {
+        const usage = evt.usage as Record<string, number> | undefined;
+        if (usage?.output_tokens) yield { kind: "usage", inputTokens: 0, outputTokens: usage.output_tokens };
       } else if (type === "message_stop") {
         yield { kind: "turn_end", reason: "stop" };
       } else if (type === "error") {

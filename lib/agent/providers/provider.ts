@@ -18,6 +18,7 @@ export type LlmEvent =
   | { kind: "text"; text: string }
   | { kind: "thinking"; text: string }
   | { kind: "tool_call"; id: string; name: string; args: Record<string, unknown> }
+  | { kind: "usage"; inputTokens: number; outputTokens: number }
   | { kind: "turn_end"; reason: FinishReason }
   | { kind: "error"; message: string; retriable?: boolean };
 

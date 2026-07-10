@@ -65,6 +65,7 @@ export const openaiProvider: LlmProvider = {
         function: { name: t.name, description: t.description, parameters: t.parameterSchema },
       }));
     }
+    body.stream_options = { include_usage: true };
 
     const res = await fetch("/api/llm/openai", {
       method: "POST",
@@ -85,6 +86,10 @@ export const openaiProvider: LlmProvider = {
       if (frame.data === "[DONE]") break;
       let evt: Record<string, unknown>;
       try { evt = JSON.parse(frame.data); } catch { continue; }
+      const usage = evt.usage as Record<string, number> | null | undefined;
+      if (usage?.prompt_tokens || usage?.completion_tokens) {
+        yield { kind: "usage", inputTokens: usage.prompt_tokens ?? 0, outputTokens: usage.completion_tokens ?? 0 };
+      }
       const choice = (evt.choices as Array<Record<string, unknown>>)?.[0];
       if (!choice) continue;
       const delta = choice.delta as Record<string, unknown> | undefined;

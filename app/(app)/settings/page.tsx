@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/chrome/theme";
 import { Section, Row } from "@/components/settings/primitives";
@@ -10,6 +10,7 @@ import { IconKey, IconTrash, IconChevron, IconCheck } from "@/components/chrome/
 import { getLocalModel } from "@/lib/models/catalog";
 import { getApiKey } from "@/lib/store/secrets";
 import { clearAllConversations } from "@/lib/store/conversations";
+import { exportSetup, importSetup } from "@/lib/store/transfer";
 import { emit } from "@/lib/store/bus";
 import type { AccentId, ThemeMode, ProviderId } from "@/lib/store/prefs";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,30 @@ export default function SettingsPage() {
   const [keyDialog, setKeyDialog] = useState<{ provider: string; label: string; hint?: string } | null>(null);
   const [keyState, setKeyState] = useState<Record<string, boolean>>({});
   const [name, setName] = useState(prefs.userName ?? "");
+  const [transferMsg, setTransferMsg] = useState<string | null>(null);
+  const importRef = useRef<HTMLInputElement>(null);
+
+  const doExport = async () => {
+    const includeMemory = confirm("Include your memory.md in the export?\n\n(API keys and tokens are never exported.)");
+    const bundle = await exportSetup({ includeMemory });
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "xome-setup.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const doImport = async (files: FileList | null) => {
+    if (!files?.[0]) return;
+    try {
+      const parsed = JSON.parse(await files[0].text());
+      const res = await importSetup(parsed);
+      setTransferMsg(`Imported ${res.skills} skills, ${res.mcp} MCP servers, ${res.automations} automations.`);
+    } catch (e) {
+      setTransferMsg(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const refreshKeys = () =>
     Promise.all(
@@ -175,8 +200,30 @@ export default function SettingsPage() {
           </Row>
         </Section>
 
+        {/* Permissions */}
+        {prefs.toolAllowlist.length > 0 && (
+          <Section title="Permissions">
+            <Row title="Always-allowed tools" subtitle="These run without an approval sheet. Remove to ask again.">
+              <div className="mt-3 flex flex-wrap gap-2">
+                {prefs.toolAllowlist.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => update({ toolAllowlist: prefs.toolAllowlist.filter((x) => x !== t) })}
+                    title="Remove from allowlist"
+                    className="group flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-3 py-1.5 font-mono text-[12px] text-text-2 transition hover:border-danger hover:text-danger"
+                  >
+                    {t}
+                    <span className="text-[13px] leading-none">×</span>
+                  </button>
+                ))}
+              </div>
+            </Row>
+          </Section>
+        )}
+
         {/* More */}
         <Section title="More">
+          <Row title="Skills" subtitle="Teach Xome repeatable workflows — activate by phrase or /command" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/skills")} />
           <Row title="Memory" subtitle="Edit what Xome durably remembers about you" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/memory")} />
           <Row title="Automations" subtitle="Background triggers and scheduled tasks" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/automations")} />
           <Row title="Privacy" subtitle="What data leaves your browser, and when" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/privacy")} />
@@ -184,6 +231,22 @@ export default function SettingsPage() {
 
         {/* Data */}
         <Section title="Data">
+          <Row
+            title="Move your setup"
+            subtitle="Export skills, connections config, automations & prefs as JSON. Keys and tokens are never included."
+            right={
+              <div className="flex gap-2">
+                <input ref={importRef} type="file" accept=".json" hidden onChange={(e) => doImport(e.target.files)} />
+                <Button variant="outlined" className="!px-4 !py-2 text-[13px]" onClick={() => importRef.current?.click()}>
+                  Import
+                </Button>
+                <Button variant="outlined" className="!px-4 !py-2 text-[13px]" onClick={doExport}>
+                  Export
+                </Button>
+              </div>
+            }
+          />
+          {transferMsg && <p className="px-4 pb-2 text-[12.5px] text-text-2">{transferMsg}</p>}
           <Row
             title="Clear chat history"
             subtitle="Delete all conversations from this browser"

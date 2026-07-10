@@ -2,29 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage, ImageAttachment } from "./chat-message";
-import { runOrchestrator } from "./orchestrator";
-import { buildRegistry } from "./build-registry";
+import { compactMessages } from "./compact";
 import { getProvider } from "./providers/registry";
-import type { ApprovalRequest, ApprovalResult } from "./tools/consent";
-import { getPrefs } from "@/lib/store/prefs";
-import { getApiKey } from "@/lib/store/secrets";
-import { readMemory } from "@/lib/store/memory";
-import { modelSupportsFunctionCalling } from "@/lib/models/catalog";
-import { accountFor } from "@/lib/integrations/oauth-client";
-import { getNotionToken } from "@/lib/store/secrets";
+import { NEVER_ALWAYS_ALLOW } from "./tools/consent";
 import {
-  getConversation,
-  saveConversation,
-  createConversation,
-  deriveTitle,
-} from "@/lib/store/conversations";
-import type { ConversationRecord } from "@/lib/store/db";
+  startRun,
+  stopRun,
+  resolveRunApproval,
+  dismissRunError,
+  clearSuggestions,
+  subscribeRun,
+  getRunState,
+  getLiveMessages,
+  type PendingApproval,
+} from "./run-manager";
+import { getPrefs, setPrefs } from "@/lib/store/prefs";
+import { getApiKey } from "@/lib/store/secrets";
+import { getConversation, saveConversation } from "@/lib/store/conversations";
 import { emit } from "@/lib/store/bus";
 
-export interface PendingApproval {
-  req: ApprovalRequest;
-  resolve: (r: ApprovalResult) => void;
-}
+export type { PendingApproval };
 
 export interface ChatState {
   conversationId: string | null;
@@ -35,196 +32,140 @@ export interface ChatState {
   statusText: string | null;
   error: string | null;
   pendingApproval: PendingApproval | null;
+  suggestions: string[];
 }
 
-async function resolveActiveIntegrations(): Promise<{
-  enabled: Set<string>;
-  accounts: Record<string, string | null>;
-}> {
-  const enabled = new Set(getPrefs().enabledIntegrations);
-  const accounts: Record<string, string | null> = {};
-  for (const id of enabled) {
-    if (id === "notion") accounts[id] = (await getNotionToken()) ? "workspace" : null;
-    else accounts[id] = await accountFor(id);
-  }
-  return { enabled, accounts };
-}
-
+/**
+ * Chat hook — a thin subscriber over the module-level run manager. Runs
+ * continue in the background when this hook unmounts (navigation), and
+ * re-attach when the conversation is opened again.
+ */
 export function useChat(initialId: string | null) {
-  const [state, setState] = useState<ChatState>({
-    conversationId: initialId,
-    messages: [],
-    liveText: "",
-    liveThinking: "",
-    running: false,
-    statusText: null,
-    error: null,
-    pendingApproval: null,
-  });
+  const [conversationId, setConversationId] = useState<string | null>(initialId);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [run, setRun] = useState(() => getRunState(initialId));
+  const compactingRef = useRef(false);
 
-  const convoRef = useRef<ConversationRecord | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  // Load existing conversation when the id changes.
+  // Reset to the route's conversation when it changes.
   useEffect(() => {
-    let alive = true;
-    if (!initialId) {
-      convoRef.current = null;
-      setState((s) => ({ ...s, conversationId: null, messages: [], liveText: "", liveThinking: "", error: null }));
-      return;
-    }
-    getConversation(initialId).then((c) => {
-      if (!alive) return;
-      convoRef.current = c ?? null;
-      setState((s) => ({
-        ...s,
-        conversationId: initialId,
-        messages: c?.messages ?? [],
-        liveText: "",
-        liveThinking: "",
-        error: null,
-      }));
-    });
-    return () => {
-      alive = false;
-    };
+    setConversationId(initialId);
   }, [initialId]);
 
-  const persist = useCallback(async (messages: ChatMessage[]) => {
-    let convo = convoRef.current;
-    if (!convo) {
-      convo = await createConversation();
-      convoRef.current = convo;
-      setState((s) => ({ ...s, conversationId: convo!.id }));
+  // Load messages + subscribe to the manager for live updates.
+  useEffect(() => {
+    let alive = true;
+    const sync = () => {
+      if (!alive) return;
+      setRun(getRunState(conversationId));
+      const live = getLiveMessages(conversationId);
+      if (live) setMessages([...live]);
+    };
+
+    if (!conversationId) {
+      setMessages([]);
+      setRun(getRunState(null));
+      return;
     }
-    convo.messages = messages;
-    if (convo.title === "New chat") convo.title = deriveTitle(messages);
-    await saveConversation(convo);
-    emit("conversations");
-  }, []);
+
+    const live = getLiveMessages(conversationId);
+    if (live) {
+      setMessages([...live]);
+      setRun(getRunState(conversationId));
+    } else {
+      getConversation(conversationId).then((c) => {
+        if (alive) setMessages(c?.messages ?? []);
+      });
+      setRun(getRunState(conversationId));
+    }
+
+    const unsub = subscribeRun(conversationId, sync);
+    return () => {
+      alive = false;
+      unsub();
+    };
+  }, [conversationId]);
 
   const send = useCallback(
     async (text: string, images?: ImageAttachment[]) => {
-      const trimmed = text.trim();
-      if (!trimmed || state.running) return;
-
-      const prefs = getPrefs();
-      const providerId = (convoRef.current?.providerOverride as typeof prefs.activeProvider) || prefs.activeProvider;
-      const provider = getProvider(providerId);
-
-      let model: string | undefined;
-      let apiKey: string | undefined;
-      let supportsFc = true;
-
-      if (provider.isLocal) {
-        model = convoRef.current?.modelOverride || prefs.localModelId || undefined;
-        if (!model) {
-          setState((s) => ({ ...s, error: "Pick an on-device model in Settings, or switch to a cloud provider with an API key." }));
-          return;
-        }
-        supportsFc = modelSupportsFunctionCalling(model);
-      } else {
-        model = convoRef.current?.modelOverride || prefs.models[providerId] || provider.defaultModel || undefined;
-        apiKey = (await getApiKey(providerId)) ?? undefined;
-        if (!apiKey) {
-          setState((s) => ({ ...s, error: `Add your ${provider.displayName} API key in Settings to use this provider.` }));
-          return;
-        }
-      }
-
-      const { enabled, accounts } = await resolveActiveIntegrations();
-      const registry = await buildRegistry(enabled);
-      const memory = await readMemory();
-      const firstName = prefs.userName?.trim().split(/\s+/)[0] ?? null;
-
-      const abort = new AbortController();
-      abortRef.current = abort;
-
-      const committed: ChatMessage[] = [...state.messages];
-      setState((s) => ({ ...s, running: true, error: null, liveText: "", liveThinking: "", statusText: null }));
-
-      const gate = (req: ApprovalRequest) =>
-        new Promise<ApprovalResult>((resolve) => {
-          setState((s) => ({ ...s, pendingApproval: { req, resolve } }));
-        });
-
-      try {
-        for await (const ev of runOrchestrator({
-          provider,
-          registry,
-          history: state.messages,
-          userInput: trimmed,
-          images,
-          userFirstName: firstName,
-          model,
-          apiKey,
-          enabledIntegrations: enabled,
-          activeIntegrationAccounts: accounts,
-          modelSupportsFunctionCalling: supportsFc,
-          memory,
-          gate,
-          signal: abort.signal,
-          onAppendMessage: (m) => {
-            committed.push(m);
-            const snapshot = [...committed];
-            setState((s) => ({
-              ...s,
-              messages: snapshot,
-              // Clear the live draft once the assistant message is committed.
-              liveText: m.role === "assistant" ? "" : s.liveText,
-              liveThinking: m.role === "assistant" ? "" : s.liveThinking,
-            }));
-            void persist(snapshot);
-          },
-        })) {
-          switch (ev.kind) {
-            case "assistant_delta":
-              setState((s) => ({ ...s, liveText: s.liveText + ev.text }));
-              break;
-            case "thinking_delta":
-              setState((s) => ({ ...s, liveThinking: s.liveThinking + ev.text }));
-              break;
-            case "tool_started":
-              setState((s) => ({ ...s, statusText: `Running ${ev.name}…`, pendingApproval: null }));
-              break;
-            case "tool_finished":
-            case "tool_failed":
-            case "tool_declined":
-              setState((s) => ({ ...s, statusText: null }));
-              break;
-            case "error":
-              setState((s) => ({ ...s, error: ev.message }));
-              break;
-            case "turn_ended":
-              break;
-          }
-        }
-      } catch (e) {
-        if (!abort.signal.aborted) {
-          setState((s) => ({ ...s, error: e instanceof Error ? e.message : String(e) }));
-        }
-      } finally {
-        abortRef.current = null;
-        setState((s) => ({ ...s, running: false, statusText: null, pendingApproval: null, liveText: "", liveThinking: "" }));
-      }
+      if (run.running) return;
+      if (conversationId) clearSuggestions(conversationId);
+      const id = await startRun(conversationId, text, images);
+      if (id && id !== conversationId) setConversationId(id);
     },
-    [state.running, state.messages, persist],
+    [conversationId, run.running],
   );
 
   const stop = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    setState((s) => ({ ...s, running: false, statusText: null }));
-  }, []);
+    if (conversationId) stopRun(conversationId);
+  }, [conversationId]);
 
-  const resolveApproval = useCallback((approved: boolean, remember = false) => {
-    setState((s) => {
-      s.pendingApproval?.resolve({ approved, rememberForSession: remember });
-      return { ...s, pendingApproval: null };
-    });
-  }, []);
+  const resolveApproval = useCallback(
+    (approved: boolean, remember = false, always = false) => {
+      if (!conversationId) return;
+      const toolName = getRunState(conversationId).pendingApproval?.req.toolName;
+      if (approved && always && toolName && !NEVER_ALWAYS_ALLOW.has(toolName)) {
+        const list = new Set(getPrefs().toolAllowlist);
+        list.add(toolName);
+        setPrefs({ toolAllowlist: [...list] });
+      }
+      resolveRunApproval(conversationId, { approved, rememberForSession: remember, rememberAlways: always });
+    },
+    [conversationId],
+  );
 
-  const dismissError = useCallback(() => setState((s) => ({ ...s, error: null })), []);
+  const dismissError = useCallback(() => {
+    if (conversationId) dismissRunError(conversationId);
+  }, [conversationId]);
 
-  return { state, send, stop, resolveApproval, dismissError };
+  /** Compact the conversation: summarize older turns into one message. */
+  const compact = useCallback(async () => {
+    if (!conversationId || run.running || compactingRef.current) return;
+    const convo = await getConversation(conversationId);
+    if (!convo || convo.messages.length === 0) return;
+
+    const prefs = getPrefs();
+    const providerId = (convo.providerOverride as typeof prefs.activeProvider) || prefs.activeProvider;
+    const provider = getProvider(providerId);
+    let model: string | undefined;
+    let apiKey: string | undefined;
+    if (provider.isLocal) {
+      model = convo.modelOverride || prefs.localModelId || undefined;
+    } else {
+      model = convo.modelOverride || prefs.models[providerId] || provider.defaultModel || undefined;
+      apiKey = (await getApiKey(providerId)) ?? undefined;
+    }
+
+    compactingRef.current = true;
+    setRun((r) => ({ ...r, running: true, statusText: "Compacting conversation…" }));
+    try {
+      const compacted = await compactMessages({ provider, messages: convo.messages, model, apiKey });
+      if (!compacted) {
+        setRun((r) => ({ ...r, running: false, statusText: null, error: "Conversation is too short to compact." }));
+        return;
+      }
+      convo.messages = compacted;
+      await saveConversation(convo);
+      emit("conversations");
+      setMessages(compacted);
+      setRun((r) => ({ ...r, running: false, statusText: null }));
+    } catch (e) {
+      setRun((r) => ({ ...r, running: false, statusText: null, error: e instanceof Error ? e.message : String(e) }));
+    } finally {
+      compactingRef.current = false;
+    }
+  }, [conversationId, run.running]);
+
+  const state: ChatState = {
+    conversationId,
+    messages,
+    liveText: run.liveText,
+    liveThinking: run.liveThinking,
+    running: run.running,
+    statusText: run.statusText,
+    error: run.error,
+    pendingApproval: run.pendingApproval,
+    suggestions: run.suggestions,
+  };
+
+  return { state, send, stop, resolveApproval, dismissError, compact };
 }

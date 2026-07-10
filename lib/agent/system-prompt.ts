@@ -35,6 +35,8 @@ export interface SystemPromptInput {
   memory?: string | null;
   /** When false (small local model), inline the tool list as text. */
   inlineToolList?: boolean;
+  /** Skills activated for this turn (trigger-matched or /invoked). */
+  skills?: Array<{ name: string; content: string }>;
 }
 
 export function buildSystemPrompt({
@@ -43,6 +45,7 @@ export function buildSystemPrompt({
   activeIntegrations = {},
   memory,
   inlineToolList = false,
+  skills = [],
 }: SystemPromptInput): string {
   const now = new Date();
   const iso = now.toISOString().split(".")[0];
@@ -78,8 +81,14 @@ export function buildSystemPrompt({
           .join("\n")}`
       : "";
 
+  const skillsSection = skills.length
+    ? `\n\nActive skills — the user has installed these instructions; follow them for this request:${skills
+        .map((s) => `\n\n### Skill: ${s.name}\n${s.content.trim()}`)
+        .join("")}`
+    : "";
+
   return `You are Xome, a local-first AI agent running in the user's web browser. Be concise and act, don't just chat.${greeting}
 Current date and time (YYYY-MM-DDTHH:MM:SS): ${iso}
 Day of week is ${weekday}
-Locale: ${locale}${integrationsLine}${memorySection}${memoryRules}${toolListSection}`;
+Locale: ${locale}${integrationsLine}${memorySection}${memoryRules}${skillsSection}${toolListSection}`;
 }

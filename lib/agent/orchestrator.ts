@@ -1,7 +1,7 @@
 import type { ChatMessage, ImageAttachment, PendingToolCall } from "./chat-message";
 import { newMessage } from "./chat-message";
 import type { ToolRegistry } from "./tools/registry";
-import { ConsentLevel, type ApprovalGate } from "./tools/consent";
+import { ConsentLevel, NEVER_ALWAYS_ALLOW, type ApprovalGate } from "./tools/consent";
 import { selectRelevantTools } from "./tools/selector";
 import { buildSystemPrompt } from "./system-prompt";
 import { Capability, type LlmProvider, type GenerationOptions } from "./providers/provider";
@@ -19,6 +19,7 @@ export type UiEvent =
   | { kind: "tool_failed"; callId: string; name: string; message: string }
   | { kind: "tool_declined"; callId: string; name: string }
   | { kind: "tool_message"; message: ChatMessage }
+  | { kind: "usage"; inputTokens: number; outputTokens: number }
   | { kind: "error"; message: string }
   | { kind: "turn_ended"; reason: string };
 
@@ -36,6 +37,10 @@ export interface RunArgs {
   activeIntegrationAccounts: Record<string, string | null>;
   modelSupportsFunctionCalling?: boolean;
   memory?: string | null;
+  /** Skills activated for this turn (injected into the system prompt). */
+  skills?: Array<{ name: string; content: string }>;
+  /** Tool names the user has permanently allowed (persisted allowlist). */
+  alwaysAllowed?: Set<string>;
   gate: ApprovalGate;
   signal?: AbortSignal;
   /** Persist callback fired for every message appended (user/assistant/tool). */
@@ -50,11 +55,14 @@ export interface RunArgs {
 export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
   const {
     provider, registry, history, userInput, images, userFirstName, model, apiKey,
-    options, enabledIntegrations, activeIntegrationAccounts, memory, gate, signal,
+    options, enabledIntegrations, activeIntegrationAccounts, memory, skills, gate, signal,
     onAppendMessage,
   } = args;
+  const alwaysAllowed = args.alwaysAllowed ?? new Set<string>();
 
   const sessionApproved = new Set<string>();
+  // Doom-loop guard: identical tool call (name + args) repeating within a turn.
+  const callCounts = new Map<string, number>();
   const messages: ChatMessage[] = [...history];
 
   const userMsg = newMessage({ role: "user", content: userInput, images });
@@ -85,12 +93,17 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
       activeIntegrations: activeIntegrationAccounts,
       memory,
       inlineToolList: provider.isLocal && !supportsFc,
+      skills,
     });
 
     let assistantText = "";
     let thinkingText = "";
     const pending: PendingToolCall[] = [];
     let errored = false;
+    // Providers report usage cumulatively within a stream — track the max per
+    // call, then emit the call's totals as one delta event.
+    let callInput = 0;
+    let callOutput = 0;
 
     try {
       for await (const ev of provider.generate({
@@ -108,6 +121,10 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
           case "tool_call":
             pending.push({ id: ev.id, name: ev.name, args: ev.args });
             break;
+          case "usage":
+            callInput = Math.max(callInput, ev.inputTokens);
+            callOutput = Math.max(callOutput, ev.outputTokens);
+            break;
           case "error":
             yield { kind: "error", message: ev.message };
             errored = true;
@@ -124,6 +141,10 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
       }
       yield { kind: "error", message: e instanceof Error ? e.message : String(e) };
       errored = true;
+    }
+
+    if (callInput || callOutput) {
+      yield { kind: "usage", inputTokens: callInput, outputTokens: callOutput };
     }
 
     if (errored) {
@@ -148,6 +169,27 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
 
     // ── Dispatch tool calls ──
     for (const call of pending) {
+      // Doom-loop guard: the same tool with identical args three times in one
+      // turn means the model is stuck — fail the call so it can change course.
+      const signature = `${call.name}:${JSON.stringify(call.args)}`;
+      const seen = (callCounts.get(signature) ?? 0) + 1;
+      callCounts.set(signature, seen);
+      if (seen > 2) {
+        yield { kind: "tool_failed", callId: call.id, name: call.name, message: "Repeated identical call blocked" };
+        const tm = newMessage({
+          role: "tool", toolName: call.name, toolCallId: call.id,
+          content: JSON.stringify({
+            error: "loop_detected",
+            message: "This exact tool call already ran twice this turn. Do not repeat it — use the earlier results or try a different approach.",
+          }),
+          toolStatus: "error",
+        });
+        messages.push(tm);
+        yield { kind: "tool_message", message: tm };
+        onAppendMessage(tm);
+        continue;
+      }
+
       const tool = registry.byName(call.name);
       if (!tool) {
         yield { kind: "tool_failed", callId: call.id, name: call.name, message: "Unknown tool" };
@@ -163,7 +205,9 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
 
       let approved =
         tool.consent === ConsentLevel.preApproved ||
-        (tool.consent === ConsentLevel.askOncePerSession && sessionApproved.has(tool.name));
+        (tool.consent === ConsentLevel.askOncePerSession && sessionApproved.has(tool.name)) ||
+        // Persisted allowlist — never honored for tools that must always ask.
+        (alwaysAllowed.has(tool.name) && !NEVER_ALWAYS_ALLOW.has(tool.name));
 
       if (!approved) {
         const resp = await gate({
