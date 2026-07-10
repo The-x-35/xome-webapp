@@ -15,7 +15,7 @@ export async function getConversation(id: string): Promise<ConversationRecord | 
   return (await db()).get("conversations", id);
 }
 
-export async function createConversation(first?: ChatMessage): Promise<ConversationRecord> {
+export async function createConversation(first?: ChatMessage, workspaceId?: string): Promise<ConversationRecord> {
   const now = Date.now();
   const rec: ConversationRecord = {
     id: uid(),
@@ -24,6 +24,7 @@ export async function createConversation(first?: ChatMessage): Promise<Conversat
     createdAt: now,
     updatedAt: now,
     pinned: false,
+    workspaceId: workspaceId && workspaceId !== "default" ? workspaceId : undefined,
   };
   await (await db()).put("conversations", rec);
   return rec;
@@ -67,6 +68,7 @@ export async function forkConversation(id: string, uptoMessageId?: string): Prom
     createdAt: now,
     updatedAt: now,
     pinned: false,
+    workspaceId: src.workspaceId,
     providerOverride: src.providerOverride,
     modelOverride: src.modelOverride,
   };

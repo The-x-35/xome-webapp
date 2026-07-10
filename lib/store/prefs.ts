@@ -31,6 +31,8 @@ export interface Prefs {
   /** Tools the user has permanently approved ("always allow"). Money-moving
    *  tools can never appear here (see NEVER_ALWAYS_ALLOW in consent.ts). */
   toolAllowlist: string[];
+  /** Active project workspace ("default" = Personal). */
+  activeWorkspaceId?: string;
 }
 
 const KEY = "xome.prefs";

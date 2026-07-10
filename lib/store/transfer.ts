@@ -56,8 +56,13 @@ export async function importSetup(bundle: SetupBundle): Promise<{ skills: number
   }
   const d = await db();
 
-  // Prefs: apply, but never let an import mark onboarding incomplete.
-  setPrefs({ ...bundle.prefs, onboardingComplete: getPrefs().onboardingComplete || bundle.prefs.onboardingComplete });
+  // Prefs: apply, but never let an import mark onboarding incomplete, and keep
+  // this machine's active workspace (the imported id may not exist here).
+  setPrefs({
+    ...bundle.prefs,
+    onboardingComplete: getPrefs().onboardingComplete || bundle.prefs.onboardingComplete,
+    activeWorkspaceId: getPrefs().activeWorkspaceId,
+  });
 
   const existingSkills = await listSkills();
   for (const s of bundle.skills) {

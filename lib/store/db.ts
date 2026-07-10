@@ -27,6 +27,8 @@ export interface ConversationRecord {
   createdAt: number;
   updatedAt: number;
   pinned: boolean;
+  /** Workspace this task belongs to (undefined = the default workspace). */
+  workspaceId?: string;
   /** Hidden from the sidebar, kept in History (non-destructive). */
   archived?: boolean;
   /** Cumulative token usage across turns (cloud providers). */
@@ -109,6 +111,15 @@ interface XomeDB extends DBSchema {
   skills: { key: string; value: SkillRecord };
   /** Persisted FileSystem handles (workspace folder). Structured-cloneable. */
   handles: { key: string; value: { id: string; handle: FileSystemDirectoryHandle; name: string } };
+  /** Project workspaces — group tasks/conversations. */
+  workspaces: { key: string; value: WorkspaceRecord };
+}
+
+export interface WorkspaceRecord {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 let dbp: Promise<IDBPDatabase<XomeDB>> | null = null;
@@ -118,7 +129,7 @@ export function db(): Promise<IDBPDatabase<XomeDB>> {
     return Promise.reject(new Error("IndexedDB unavailable on the server"));
   }
   if (!dbp) {
-    dbp = openDB<XomeDB>("xome", 3, {
+    dbp = openDB<XomeDB>("xome", 4, {
       upgrade(d, oldVersion) {
         if (oldVersion < 1) {
           const conv = d.createObjectStore("conversations", { keyPath: "id" });
@@ -136,6 +147,20 @@ export function db(): Promise<IDBPDatabase<XomeDB>> {
         if (oldVersion < 3) {
           d.createObjectStore("handles", { keyPath: "id" });
         }
+        if (oldVersion < 4) {
+          d.createObjectStore("workspaces", { keyPath: "id" });
+        }
+      },
+      // Without these handlers a schema upgrade DEADLOCKS whenever another tab
+      // still holds a connection on the old version — every store call in the
+      // new tab then awaits forever. `blocking` fires in the OLD tabs: close
+      // their connection so the new tab can upgrade; they reopen lazily.
+      blocking() {
+        void dbp?.then((d) => d.close()).catch(() => {});
+        dbp = null;
+      },
+      terminated() {
+        dbp = null;
       },
     });
   }

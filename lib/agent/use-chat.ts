@@ -11,6 +11,7 @@ import {
   resolveRunApproval,
   dismissRunError,
   clearSuggestions,
+  dropSession,
   subscribeRun,
   getRunState,
   getLiveMessages,
@@ -145,6 +146,9 @@ export function useChat(initialId: string | null) {
       }
       convo.messages = compacted;
       await saveConversation(convo);
+      // Drop the finished manager session so later syncs don't resurrect the
+      // pre-compaction message array.
+      dropSession(conversationId);
       emit("conversations");
       setMessages(compacted);
       setRun((r) => ({ ...r, running: false, statusText: null }));

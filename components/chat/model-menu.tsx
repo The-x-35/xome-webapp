@@ -59,7 +59,7 @@ export function ModelMenu() {
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-0 z-30 mb-2 max-h-[60vh] w-72 overflow-y-auto rounded-2xl border border-border bg-surface p-1.5 shadow-[var(--shadow-card)]">
+        <div className="absolute right-0 top-full z-30 mt-2 max-h-[60vh] w-72 overflow-y-auto rounded-2xl border border-border bg-surface p-1.5 shadow-[var(--shadow-card)]">
           {/* On-device */}
           <div className="px-2.5 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
             On-device (WebGPU)

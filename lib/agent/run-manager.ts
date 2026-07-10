@@ -126,6 +126,24 @@ export function dismissRunError(convId: string): void {
   patch(convId, { error: null });
 }
 
+/** Untag live sessions from a deleted workspace so their next persist doesn't
+ *  resurrect its id (the stored records were already moved to Personal). */
+export function clearWorkspaceTag(workspaceId: string): void {
+  for (const s of sessions.values()) {
+    if (s.convo.workspaceId === workspaceId) s.convo.workspaceId = undefined;
+  }
+}
+
+/** Drop a finished session so views re-read messages from IndexedDB (used
+ *  after out-of-band edits like /compact). No-op while running. */
+export function dropSession(convId: string): void {
+  const s = sessions.get(convId);
+  if (s && !s.state.running) {
+    sessions.delete(convId);
+    notify(convId);
+  }
+}
+
 export function clearSuggestions(convId: string): void {
   patch(convId, { suggestions: [] });
 }
@@ -213,7 +231,10 @@ export async function startRun(convId: string | null, text: string, images?: Ima
   if (!trimmed) return convId;
   if (convId && sessions.get(convId)?.state.running) return convId;
 
-  const convo = convId ? ((await getConversation(convId)) ?? (await createConversation())) : await createConversation();
+  const ws = getPrefs().activeWorkspaceId;
+  const convo = convId
+    ? ((await getConversation(convId)) ?? (await createConversation(undefined, ws)))
+    : await createConversation(undefined, ws);
   const id = convo.id;
 
   const session: Session = {

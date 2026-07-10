@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ModelMenu } from "./model-menu";
 import { IconSend, IconStop, IconMic, IconPaperclip, IconBolt } from "@/components/chrome/icons";
 import type { ImageAttachment } from "@/lib/agent/chat-message";
 import { listSkills } from "@/lib/store/skills";
@@ -127,10 +126,6 @@ export function Composer({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-3 pb-4 pt-1">
-      <div className="mb-2 flex items-center">
-        <ModelMenu />
-      </div>
-
       {images.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {images.map((img, i) => (
