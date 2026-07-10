@@ -10,7 +10,26 @@ export const runtime = "nodejs";
 
 const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 
+/** This route spends OUR upstream RPC quota, so it must only serve the app
+ *  itself: same-origin browser requests (sec-fetch-site) or a matching Origin.
+ *  Cross-site pages and third-party scripts get a 403. */
+function isSameOrigin(req: NextRequest): boolean {
+  const site = req.headers.get("sec-fetch-site");
+  if (site) return site === "same-origin";
+  const origin = req.headers.get("origin") ?? req.headers.get("referer");
+  if (!origin) return true; // non-browser clients without Origin (e.g. curl in dev)
+  try {
+    const host = new URL(origin).host;
+    return host === (req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
   const body = await req.text();
   try {
     const upstream = await fetch(RPC_URL, {

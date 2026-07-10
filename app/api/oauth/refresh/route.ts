@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { providerConfig, INTEGRATION_AUTH } from "@/lib/integrations/oauth-config";
+import { providerConfig, INTEGRATION_AUTH, requestOrigin } from "@/lib/integrations/oauth-config";
 
 /** Refresh an access token using the stored refresh token + the server-side
  *  client secret. The browser sends the refresh token; we return fresh tokens.
@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
   const auth = body.integration ? INTEGRATION_AUTH[body.integration] : undefined;
   if (!auth || !body.refreshToken) return Response.json({ error: "bad_request" }, { status: 400 });
 
-  const cfg = providerConfig(auth.provider);
+  // Origin-aware: the prod origin refreshes with the prod app's credentials.
+  const cfg = providerConfig(auth.provider, requestOrigin(req));
   if (!cfg.clientId || !cfg.clientSecret) return Response.json({ error: "not_configured" }, { status: 501 });
 
   const form = new URLSearchParams({
