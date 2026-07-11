@@ -4,7 +4,7 @@ import { defineTool, type Tool, type ToolResult } from "@/lib/agent/tools/tool";
 import { ConsentLevel } from "@/lib/agent/tools/consent";
 import { slack, SlackError } from "@/lib/integrations/slack/slack-client";
 
-/** Slack integration tools — all gated behind integrationId "slack". */
+/** Slack integration tools, all gated behind integrationId "slack". */
 
 function handleError(e: unknown): ToolResult {
   if (e instanceof SlackError) {

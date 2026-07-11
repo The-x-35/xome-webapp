@@ -5,7 +5,7 @@ import { Mark } from "@/components/ui/mark";
 import { Button } from "@/components/ui/index";
 import { ConsentLevel, NEVER_ALWAYS_ALLOW, type ApprovalRequest } from "@/lib/agent/tools/consent";
 
-/** The consent sheet — shown before any alwaysAsk / first askOncePerSession tool
+/** The consent sheet, shown before any alwaysAsk / first askOncePerSession tool
  *  runs. Mirrors approval_sheet.dart: tool name, args JSON, remember toggles. */
 export function ApprovalSheet({
   req,
@@ -70,7 +70,7 @@ export function ApprovalSheet({
             </label>
           ) : (
             <p className="text-[11.5px] text-text-3">
-              This action asks every time — it can&apos;t be added to the always-allow list.
+              This action asks every time, it can&apos;t be added to the always-allow list.
             </p>
           )}
         </div>

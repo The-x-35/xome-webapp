@@ -38,7 +38,7 @@ export function ApiKeyDialog({
           value={value}
           autoFocus
           onChange={(e) => setValue(e.target.value)}
-          placeholder={existing ? "•••••••••• (key set — type to replace)" : "Paste your API key"}
+          placeholder={existing ? "•••••••••• (key set, type to replace)" : "Paste your API key"}
           className="mt-4 w-full rounded-[var(--radius-input)] border border-border bg-surface-2 px-3.5 py-3 font-mono text-[13px] text-text outline-none focus:border-accent"
         />
         <div className="mt-5 flex items-center justify-between gap-2">

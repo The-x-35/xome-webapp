@@ -10,7 +10,7 @@ import { setSolanaWallet } from "@/lib/integrations/solana/wallet-bridge";
 /**
  * Mounts Privy (only when NEXT_PUBLIC_PRIVY_APP_ID is set) and bridges the user's
  * embedded Solana wallet into the module-level wallet-bridge that the agent's
- * Solana tools read. With no app id the app renders untouched — Solana just
+ * Solana tools read. With no app id the app renders untouched, Solana just
  * shows "not configured" in Connections.
  */
 

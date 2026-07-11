@@ -6,7 +6,7 @@ import { proxyFetch } from "@/lib/net/proxy";
 import { getApiKey } from "@/lib/store/secrets";
 import { getPrefs } from "@/lib/store/prefs";
 
-/** Web + information utilities — port of web_tools.dart. All keyless except
+/** Web + information utilities, port of web_tools.dart. All keyless except
  *  the optional Tavily/Brave search keys; web_search falls back to DuckDuckGo. */
 
 interface SearchResult { title: string; url: string; snippet: string }

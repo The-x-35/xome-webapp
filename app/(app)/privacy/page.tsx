@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           <p>
             When you choose a <strong className="text-text">cloud model</strong> (Claude, GPT, Gemini), your message goes
             to that provider with <strong className="text-text">your own API key</strong>. Xome relays the request through
-            a stateless proxy so the browser can reach the API — the key passes through per-request and is never stored or
+            a stateless proxy so the browser can reach the API, the key passes through per-request and is never stored or
             logged on our side.
           </p>
           <p>

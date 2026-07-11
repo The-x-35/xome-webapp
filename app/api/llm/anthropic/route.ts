@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
  * Stateless Claude proxy. The browser builds the full Anthropic request body
  * and sends its API key in `x-xome-key`. We attach the key, forward to
  * Anthropic, and stream the SSE straight back. The key is never logged or
- * persisted — this route holds no state.
+ * persisted, this route holds no state.
  */
 export const runtime = "edge";
 

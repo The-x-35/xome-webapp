@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 /**
- * MCP proxy — forwards JSON-RPC to a user-configured MCP server (arbitrary
+ * MCP proxy, forwards JSON-RPC to a user-configured MCP server (arbitrary
  * public URL, SSRF-guarded) and returns the parsed result plus the
  * Mcp-Session-Id header so the client can persist the session. Handles both
  * single-JSON and text/event-stream responses.

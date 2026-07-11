@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Synchronous, localStorage-backed preferences — the web analogue of the app's
+ * Synchronous, localStorage-backed preferences, the web analogue of the app's
  * `preferences.dart` (SharedPreferences). Small scalar settings that the UI
  * needs immediately and on first paint (theme, accent, active provider/model).
  * Larger / sensitive data lives in IndexedDB (see db.ts, secrets.ts).
@@ -14,7 +14,7 @@ export type ProviderId = "webllm" | "anthropic" | "openai" | "google";
 export interface Prefs {
   theme: ThemeMode;
   accent: AccentId;
-  /** Active "brain" — which provider answers by default. */
+  /** Active "brain", which provider answers by default. */
   activeProvider: ProviderId;
   /** Per-provider chosen model id (overrides provider default). */
   models: Partial<Record<ProviderId, string>>;
@@ -76,7 +76,7 @@ export function setPrefs(patch: Partial<Prefs>): Prefs {
     try {
       window.localStorage.setItem(KEY, JSON.stringify(next));
     } catch {
-      /* quota / private mode — keep in-memory */
+      /* quota / private mode, keep in-memory */
     }
   }
   listeners.forEach((l) => l(next));

@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Xome brand mark — the locked hexagon with side pins and an X knockout.
+ * Xome brand mark, the locked hexagon with side pins and an X knockout.
  * Port of XomeAvatar (CustomPaint) + the marketing site's Mark.
  *
- * The hexagon fills with `currentColor` (set it via a text-* class — `text-ink`
+ * The hexagon fills with `currentColor` (set it via a text-* class, `text-ink`
  * for the logo, `text-text` inside chat). The X punches through in `--on-ink`,
  * which is the correct contrast against an ink-colored hexagon in both themes.
  */

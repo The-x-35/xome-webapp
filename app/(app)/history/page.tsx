@@ -88,7 +88,7 @@ export default function HistoryPage() {
           <EmptyState
             icon={<Mark size={56} className="text-text-3" />}
             title="No conversations yet"
-            body="Start a chat and it'll show up here — searchable, pinnable, and stored only in this browser."
+            body="Start a chat and it'll show up here, searchable, pinnable, and stored only in this browser."
           />
         ) : (
           Object.entries(groups).map(([label, items]) =>

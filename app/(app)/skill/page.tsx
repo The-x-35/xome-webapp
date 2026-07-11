@@ -14,7 +14,7 @@ interface SharedSkill {
 }
 
 /** Landing page for shared skill links: /skill#<base64url(json)>. The payload
- *  never touches a server — it lives entirely in the URL fragment. */
+ *  never touches a server, it lives entirely in the URL fragment. */
 export default function SkillSharePage() {
   const router = useRouter();
   const [skill, setSkill] = useState<SharedSkill | null>(null);
@@ -81,7 +81,7 @@ export default function SkillSharePage() {
               {skill.content}
             </pre>
             <p className="mt-3 text-[12px] text-text-3">
-              Review before adding — skills are instructions the model follows on your behalf.
+              Review before adding, skills are instructions the model follows on your behalf.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               {added ? (

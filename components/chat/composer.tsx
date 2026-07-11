@@ -229,7 +229,7 @@ export function Composer({
         </div>
       </div>
       <p className="mt-2 text-center text-[11.5px] text-text-3">
-        Xome can act on your apps with your approval. It can make mistakes — check important actions.
+        Xome can act on your apps with your approval. It can make mistakes, check important actions.
       </p>
     </div>
   );

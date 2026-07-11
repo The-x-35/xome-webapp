@@ -97,7 +97,7 @@ export default function SkillsPage() {
             <div className="grid gap-3">
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-[12.5px] text-text-2">
-                  Name (slug — becomes /{slugify(editing.name) || "name"})
+                  Name (slug, becomes /{slugify(editing.name) || "name"})
                   <input
                     value={editing.name}
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
@@ -116,7 +116,7 @@ export default function SkillsPage() {
                 </label>
               </div>
               <label className="text-[12.5px] text-text-2">
-                Description (one line — also used for matching)
+                Description (one line, also used for matching)
                 <input
                   value={editing.description}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}

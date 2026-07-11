@@ -4,7 +4,7 @@ import { defineTool, type Tool } from "@/lib/agent/tools/tool";
 import { ConsentLevel } from "@/lib/agent/tools/consent";
 import { gmail } from "@/lib/integrations/gmail/gmail-client";
 
-/** Gmail tools — search, read, send, draft, and list labels. All calls go
+/** Gmail tools, search, read, send, draft, and list labels. All calls go
  *  through the GmailClient (authedFetch) and never throw: failures return
  *  { error, message }. */
 

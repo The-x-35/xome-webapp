@@ -3,7 +3,7 @@ import { providerConfig, INTEGRATION_AUTH, requestOrigin } from "@/lib/integrati
 
 /** Refresh an access token using the stored refresh token + the server-side
  *  client secret. The browser sends the refresh token; we return fresh tokens.
- *  Stateless — nothing stored here. (Google/GitHub support refresh; Slack user
+ *  Stateless, nothing stored here. (Google/GitHub support refresh; Slack user
  *  tokens generally don't expire.) */
 export const runtime = "nodejs";
 

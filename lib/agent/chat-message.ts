@@ -1,5 +1,5 @@
 /**
- * Chat message model — port of lib/agent/chat_message.dart.
+ * Chat message model, port of lib/agent/chat_message.dart.
  *
  * A single role union covers user / assistant / tool / system. Assistant
  * messages may carry pending tool calls and provider-internal `thinking`.
@@ -40,7 +40,7 @@ export interface ChatMessage {
   createdAt: number;
 }
 
-/** Persisted form (no transient UI fields stripped — we keep them for replay). */
+/** Persisted form (no transient UI fields stripped, we keep them for replay). */
 export type StoredMessage = ChatMessage;
 
 export function newMessage(m: Omit<ChatMessage, "id" | "createdAt"> & Partial<Pick<ChatMessage, "id" | "createdAt">>): ChatMessage {

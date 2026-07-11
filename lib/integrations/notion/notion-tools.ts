@@ -4,7 +4,7 @@ import { defineTool, type Tool } from "@/lib/agent/tools/tool";
 import { ConsentLevel } from "@/lib/agent/tools/consent";
 import { notion } from "./notion-client";
 
-/** Notion integration tools — backed by NotionClient (internal integration
+/** Notion integration tools, backed by NotionClient (internal integration
  *  token, no OAuth). Reads are preApproved; writes are alwaysAsk. */
 
 const GROUP = "Notion";
@@ -71,7 +71,7 @@ export const notionTools: Tool[] = [
   defineTool({
     name: "notion_create_page",
     description:
-      "Create a new Notion page under a parent page or database. Optional markdown body supports paragraphs, headings (#, ##, ###), and bullet lists (- ) only — no nested or complex blocks. Set isDatabase true when the parent is a database. Returns {id, url}.",
+      "Create a new Notion page under a parent page or database. Optional markdown body supports paragraphs, headings (#, ##, ###), and bullet lists (- ) only, no nested or complex blocks. Set isDatabase true when the parent is a database. Returns {id, url}.",
     parameterSchema: {
       type: "object",
       properties: {

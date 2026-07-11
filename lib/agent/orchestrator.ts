@@ -48,7 +48,7 @@ export interface RunArgs {
 }
 
 /**
- * The agent loop — port of lib/agent/orchestrator.dart.
+ * The agent loop, port of lib/agent/orchestrator.dart.
  * Plan → call provider → execute tools (with approval) → reflect → repeat,
  * capped at 6 iterations. Yields UiEvents; mutates nothing the caller owns.
  */
@@ -100,7 +100,7 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
     let thinkingText = "";
     const pending: PendingToolCall[] = [];
     let errored = false;
-    // Providers report usage cumulatively within a stream — track the max per
+    // Providers report usage cumulatively within a stream, track the max per
     // call, then emit the call's totals as one delta event.
     let callInput = 0;
     let callOutput = 0;
@@ -170,7 +170,7 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
     // ── Dispatch tool calls ──
     for (const call of pending) {
       // Doom-loop guard: the same tool with identical args three times in one
-      // turn means the model is stuck — fail the call so it can change course.
+      // turn means the model is stuck, fail the call so it can change course.
       const signature = `${call.name}:${JSON.stringify(call.args)}`;
       const seen = (callCounts.get(signature) ?? 0) + 1;
       callCounts.set(signature, seen);
@@ -180,7 +180,7 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
           role: "tool", toolName: call.name, toolCallId: call.id,
           content: JSON.stringify({
             error: "loop_detected",
-            message: "This exact tool call already ran twice this turn. Do not repeat it — use the earlier results or try a different approach.",
+            message: "This exact tool call already ran twice this turn. Do not repeat it, use the earlier results or try a different approach.",
           }),
           toolStatus: "error",
         });
@@ -206,7 +206,7 @@ export async function* runOrchestrator(args: RunArgs): AsyncGenerator<UiEvent> {
       let approved =
         tool.consent === ConsentLevel.preApproved ||
         (tool.consent === ConsentLevel.askOncePerSession && sessionApproved.has(tool.name)) ||
-        // Persisted allowlist — never honored for tools that must always ask.
+        // Persisted allowlist, never honored for tools that must always ask.
         (alwaysAllowed.has(tool.name) && !NEVER_ALWAYS_ALLOW.has(tool.name));
 
       if (!approved) {

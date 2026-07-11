@@ -1,6 +1,6 @@
 "use client";
 
-/** MCP client — JSON-RPC 2.0 to an MCP server via the /api/mcp proxy.
+/** MCP client, JSON-RPC 2.0 to an MCP server via the /api/mcp proxy.
  *  Port of mcp_client.dart: initialize → notifications/initialized → tools/list
  *  / tools/call. The proxy returns the Mcp-Session-Id so we can keep a session. */
 

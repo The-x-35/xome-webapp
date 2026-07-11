@@ -6,7 +6,7 @@ import type { ProviderId } from "@/lib/store/prefs";
 
 /**
  * In-tab automation scheduler. While Xome is open, time_of_day automations run
- * at their configured HH:MM (once per day). This is honest about its limits —
+ * at their configured HH:MM (once per day). This is honest about its limits -
  * nothing runs with the tab closed; the automations UI says so.
  */
 
@@ -65,7 +65,7 @@ async function tick(): Promise<void> {
       }
     }
   } catch {
-    /* stores unavailable — retry next tick */
+    /* stores unavailable, retry next tick */
   } finally {
     ticking = false;
   }

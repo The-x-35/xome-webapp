@@ -3,7 +3,7 @@ import { ConsentLevel } from "./consent";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-/** Port of builtin_tools.dart — get_current_time. */
+/** Port of builtin_tools.dart, get_current_time. */
 export const builtinTools: Tool[] = [
   defineTool({
     name: "get_current_time",

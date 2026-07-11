@@ -11,7 +11,7 @@ import {
  * OAuth callback. Validates state, exchanges the code for tokens (server-side,
  * with the client secret), then returns a tiny HTML page that postMessages the
  * token to the opener window and closes the popup. Tokens are handed to the
- * browser to store locally — no token is persisted on the server.
+ * browser to store locally, no token is persisted on the server.
  */
 export const runtime = "nodejs";
 

@@ -111,7 +111,7 @@ interface XomeDB extends DBSchema {
   skills: { key: string; value: SkillRecord };
   /** Persisted FileSystem handles (workspace folder). Structured-cloneable. */
   handles: { key: string; value: { id: string; handle: FileSystemDirectoryHandle; name: string } };
-  /** Project workspaces — group tasks/conversations. */
+  /** Project workspaces, group tasks/conversations. */
   workspaces: { key: string; value: WorkspaceRecord };
 }
 
@@ -152,7 +152,7 @@ export function db(): Promise<IDBPDatabase<XomeDB>> {
         }
       },
       // Without these handlers a schema upgrade DEADLOCKS whenever another tab
-      // still holds a connection on the old version — every store call in the
+      // still holds a connection on the old version, every store call in the
       // new tab then awaits forever. `blocking` fires in the OLD tabs: close
       // their connection so the new tab can upgrade; they reopen lazily.
       blocking() {

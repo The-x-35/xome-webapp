@@ -24,7 +24,7 @@ export function ThinkingDots({ label = "Thinking" }: { label?: string }) {
   );
 }
 
-/** Live plan checklist — rendered from the model's plan_update tool calls. */
+/** Live plan checklist, rendered from the model's plan_update tool calls. */
 export function PlanCard({ message }: { message: ChatMessage }) {
   const steps = ((message.toolResult as { steps?: Array<{ label: string; status: string }> })?.steps ?? []).slice(0, 20);
   if (!steps.length) return null;
@@ -70,7 +70,7 @@ interface ArtifactData {
   filename: string;
 }
 
-/** Artifact card — preview/copy/download for documents the agent produced. */
+/** Artifact card, preview/copy/download for documents the agent produced. */
 export function ArtifactCard({ message }: { message: ChatMessage }) {
   const [preview, setPreview] = useState(false);
   const a = (message.toolResult as { artifact?: ArtifactData })?.artifact;
@@ -148,7 +148,7 @@ export function ArtifactCard({ message }: { message: ChatMessage }) {
   );
 }
 
-/** A run of consecutive tool calls, grouped into one timeline card — ported
+/** A run of consecutive tool calls, grouped into one timeline card, ported
  *  from OpenWork's execution panel. Chips show status; each expands to its
  *  result. */
 export function ToolRunGroup({ messages }: { messages: ChatMessage[] }) {

@@ -13,7 +13,7 @@ export type AuthProvider = "google" | "slack" | "github";
 
 /**
  * Public origin of the request, honoring reverse-proxy headers. Behind ngrok in
- * dev — and behind the load balancer that fronts app.xome.bot in prod — the real
+ * dev, and behind the load balancer that fronts app.xome.bot in prod, the real
  * public host/scheme arrive in `x-forwarded-host` / `x-forwarded-proto`, while
  * `req.nextUrl.origin` reports the internal address (e.g. localhost:3000). OAuth
  * redirect URIs must be the *public* origin, so prefer the forwarded values.
@@ -49,7 +49,7 @@ function isProdOrigin(origin?: string): boolean {
 
 /** Pick prod credentials when serving the production origin, else the base
  *  (localhost/dev) ones. Prod falls back to the base vars when `*_PROD` is unset
- *  — so a provider using one OAuth app with multiple redirect URIs (Google,
+ * , so a provider using one OAuth app with multiple redirect URIs (Google,
  *  Slack) needs no `*_PROD` vars, while a provider needing separate dev/prod
  *  apps (GitHub) just sets them. */
 function creds(prefix: string, prod: boolean): { clientId?: string; clientSecret?: string } {

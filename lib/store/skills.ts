@@ -4,7 +4,7 @@ import { db, uid, type SkillRecord } from "./db";
 import { emit } from "./bus";
 
 /**
- * Skills store — user-authored SKILL.md-style extensions kept in IndexedDB.
+ * Skills store, user-authored SKILL.md-style extensions kept in IndexedDB.
  * A skill is frontmatter (name, description, triggers) + a markdown body of
  * instructions. Matched skills are injected into the system prompt; a skill
  * can also be invoked explicitly with /name in the composer.
@@ -97,7 +97,7 @@ const STOPWORDS = new Set([
 /**
  * Pick the skills relevant to a user message. Explicit trigger phrases win;
  * otherwise score by word overlap with name + description. Mirrors the app's
- * lexical tool_selector approach — cheap, deterministic, no model call.
+ * lexical tool_selector approach, cheap, deterministic, no model call.
  */
 export function matchSkills(input: string, skills: SkillRecord[], max = 2): SkillRecord[] {
   const text = input.toLowerCase();

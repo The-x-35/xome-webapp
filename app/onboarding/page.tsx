@@ -145,7 +145,7 @@ export default function OnboardingPage() {
             </label>
             <p className="mt-1.5 text-[12px] text-text-3">
               Get one at {KEY_HINTS[cloudProvider]}. The key stays in this browser and rides out per-request through a
-              stateless proxy — never stored on a server.
+              stateless proxy, never stored on a server.
             </p>
 
             <div className="mt-5 flex justify-end">

@@ -39,7 +39,7 @@ export default function ConnectionsPage() {
         <div className="mb-7 flex items-start gap-3 rounded-[var(--radius-card)] border border-border bg-accent-soft px-4 py-3">
           <IconShield width={20} height={20} className="mt-0.5 shrink-0 text-accent-text" />
           <p className="text-[13px] leading-relaxed text-text">
-            Local-first. Your tokens stay in this browser and ride out through a stateless proxy only when a tool runs —
+            Local-first. Your tokens stay in this browser and ride out through a stateless proxy only when a tool runs -
             never stored on a Xome server. Reads are automatic; every write asks first.
           </p>
         </div>

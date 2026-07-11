@@ -1,11 +1,11 @@
-/** Consent model — port of lib/agent/tools/consent.dart. */
+/** Consent model, port of lib/agent/tools/consent.dart. */
 
 export enum ConsentLevel {
   /** Show approval sheet on every invocation (writes / sends). */
   alwaysAsk = "alwaysAsk",
   /** Ask on first use this session, then remember (location, contacts…). */
   askOncePerSession = "askOncePerSession",
-  /** No prompt — safe reads / local utilities. */
+  /** No prompt, safe reads / local utilities. */
   preApproved = "preApproved",
 }
 
@@ -27,7 +27,7 @@ export interface ApprovalResult {
 export type ApprovalGate = (req: ApprovalRequest) => Promise<ApprovalResult>;
 
 /** Tools that move money (or are otherwise irreversible) can never be added to
- *  the persisted allowlist — they show the approval sheet every single time. */
+ *  the persisted allowlist, they show the approval sheet every single time. */
 export const NEVER_ALWAYS_ALLOW: ReadonlySet<string> = new Set([
   "solana_send",
   "solana_swap",

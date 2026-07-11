@@ -22,7 +22,7 @@ import type { ConversationRecord } from "@/lib/store/db";
 import { emit } from "@/lib/store/bus";
 
 /**
- * Module-level run manager — runs live OUTSIDE React so navigating away from a
+ * Module-level run manager, runs live OUTSIDE React so navigating away from a
  * conversation no longer kills its agent run (ported idea from OpenWork/Cowork
  * background sessions). Chat views subscribe per-conversation; the sidebar
  * subscribes to the global running set.

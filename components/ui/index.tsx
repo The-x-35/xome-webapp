@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-/* ── Card (XomeCard) — hairline border, 20px radius, accent ring when selected ── */
+/* ── Card (XomeCard), hairline border, 20px radius, accent ring when selected ── */
 export function Card({
   children,
   className,
@@ -37,7 +37,7 @@ export function Card({
   );
 }
 
-/* ── Tag (XomeTag) — pill status chip ── */
+/* ── Tag (XomeTag), pill status chip ── */
 type TagKind = "primary" | "success" | "warning" | "neutral";
 export function Tag({
   children,
@@ -77,7 +77,7 @@ export function Tag({
   );
 }
 
-/* ── StatusPill (XomeStatusPill) — accent-tinted running indicator ── */
+/* ── StatusPill (XomeStatusPill), accent-tinted running indicator ── */
 export function StatusPill({
   children,
   icon,
@@ -102,7 +102,7 @@ export function StatusPill({
   );
 }
 
-/* ── Buttons — stadium (pill) shape, three variants ── */
+/* ── Buttons, stadium (pill) shape, three variants ── */
 type BtnVariant = "filled" | "outlined" | "text" | "danger";
 export function Button({
   children,
@@ -130,7 +130,7 @@ export function Button({
   );
 }
 
-/* ── Chip — selectable filter chip ── */
+/* ── Chip, selectable filter chip ── */
 export function Chip({
   children,
   selected = false,
@@ -158,7 +158,7 @@ export function Chip({
   );
 }
 
-/* ── MetaChip — small monospace meta (size / accel / context) ── */
+/* ── MetaChip, small monospace meta (size / accel / context) ── */
 export function MetaChip({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 text-[12px] font-medium text-text-2">

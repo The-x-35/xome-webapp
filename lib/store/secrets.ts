@@ -3,7 +3,7 @@
 import { db, type SecretRecord } from "./db";
 
 /**
- * Secrets store — API keys, OAuth tokens, the Notion token. Web analogue of
+ * Secrets store, API keys, OAuth tokens, the Notion token. Web analogue of
  * flutter_secure_storage / api_keys_store.dart. Stored in origin-isolated
  * IndexedDB and only ever read client-side; secrets are attached to requests
  * at call time and forwarded through the stateless proxy, never persisted

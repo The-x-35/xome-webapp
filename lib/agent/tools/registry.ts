@@ -25,7 +25,7 @@ export class ToolRegistry {
     return this.tools.get(name);
   }
 
-  /** Tools exposed to the model this turn — drop tools whose integration is off. */
+  /** Tools exposed to the model this turn, drop tools whose integration is off. */
   toolsFor(enabledIntegrations: Set<string>): Tool[] {
     return this.all().filter((t) => {
       const id = t.integrationId;

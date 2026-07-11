@@ -4,7 +4,7 @@ import { db } from "@/lib/store/db";
 import { emit } from "@/lib/store/bus";
 
 /**
- * Local folder workspace — the browser analogue of Cowork/OpenWork's
+ * Local folder workspace, the browser analogue of Cowork/OpenWork's
  * agent-on-your-files loop, built on the File System Access API (Chromium).
  * The user picks a folder; the agent gets scoped, permissioned read/write
  * inside it and nowhere else. The handle persists in IndexedDB across reloads

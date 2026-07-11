@@ -13,7 +13,7 @@ export enum Capability {
 
 export type FinishReason = "stop" | "length" | "tool" | "error";
 
-/** Streaming events — sealed union (TextDelta | ThinkingDelta | ToolCall | TurnEnd | ProviderError). */
+/** Streaming events, sealed union (TextDelta | ThinkingDelta | ToolCall | TurnEnd | ProviderError). */
 export type LlmEvent =
   | { kind: "text"; text: string }
   | { kind: "thinking"; text: string }

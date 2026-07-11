@@ -5,7 +5,7 @@ import { getPrefs, setPrefs } from "./prefs";
 import { emit } from "./bus";
 
 /**
- * Workspaces — lightweight project containers that group tasks/conversations.
+ * Workspaces, lightweight project containers that group tasks/conversations.
  * A virtual "Personal" workspace (id "default") always exists and needs no row
  * in the store; conversations without a workspaceId belong to it.
  */
@@ -68,7 +68,7 @@ export async function deleteWorkspace(id: string): Promise<void> {
       await d.put("conversations", c);
     }
   }
-  // Live runs hold an in-memory convo snapshot — untag those too, or their
+  // Live runs hold an in-memory convo snapshot, untag those too, or their
   // next persist would resurrect the deleted workspace id.
   const { clearWorkspaceTag } = await import("@/lib/agent/run-manager");
   clearWorkspaceTag(id);

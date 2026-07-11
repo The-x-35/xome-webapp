@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * WebLLM engine manager — the web replacement for flutter_gemma. Loads a model
+ * WebLLM engine manager, the web replacement for flutter_gemma. Loads a model
  * into a singleton MLCEngine running on WebGPU, entirely in the browser. Model
  * shards are fetched once and cached by the browser (Cache API), so subsequent
  * loads are instant. Nothing here touches a Xome server.

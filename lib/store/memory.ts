@@ -3,7 +3,7 @@
 import { db } from "./db";
 
 /**
- * Editable user memory (memory.md) — the durable context surfaced in the system
+ * Editable user memory (memory.md), the durable context surfaced in the system
  * prompt and mutated by the memory_* tools. Port of memory_store.dart.
  */
 

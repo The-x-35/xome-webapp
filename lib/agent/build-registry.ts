@@ -28,10 +28,10 @@ export async function buildRegistry(enabledIntegrations: Set<string>): Promise<T
   try {
     reg.registerAll(await buildIntegrationTools(enabledIntegrations));
   } catch {
-    /* integration module not ready / not connected — skip */
+    /* integration module not ready / not connected, skip */
   }
 
-  // Local folder workspace — only when a folder is connected.
+  // Local folder workspace, only when a folder is connected.
   try {
     if (await workspaceName()) reg.registerAll(workspaceTools);
   } catch {

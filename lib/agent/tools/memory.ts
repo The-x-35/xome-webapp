@@ -12,15 +12,15 @@ function appendNote(existing: string, note: string): string {
   return `${existing}${sep}\n## Notes\n${bullet}\n`;
 }
 
-/** Port of memory_tools.dart — memory_append / memory_edit / memory_replace. */
+/** Port of memory_tools.dart, memory_append / memory_edit / memory_replace. */
 export const memoryTools: Tool[] = [
   defineTool({
     name: "memory_append",
     description:
-      "FALLBACK tool — adds a NEW bullet under a \"## Notes\" section in memory.md. Only call this when no existing template field fits the fact. If an empty/outdated field matches (e.g. \"- Name:\"), use memory_edit instead. Good uses: free-form facts with no matching field (\"User enjoys sci-fi novels\").",
+      "FALLBACK tool, adds a NEW bullet under a \"## Notes\" section in memory.md. Only call this when no existing template field fits the fact. If an empty/outdated field matches (e.g. \"- Name:\"), use memory_edit instead. Good uses: free-form facts with no matching field (\"User enjoys sci-fi novels\").",
     parameterSchema: {
       type: "object",
-      properties: { note: { type: "string", description: "A single, self-contained fact or preference. No leading bullet — the tool adds one." } },
+      properties: { note: { type: "string", description: "A single, self-contained fact or preference. No leading bullet, the tool adds one." } },
       required: ["note"],
       additionalProperties: false,
     },
@@ -38,7 +38,7 @@ export const memoryTools: Tool[] = [
   defineTool({
     name: "memory_edit",
     description:
-      "PRIMARY tool for updating user memory. Replaces ONE exact occurrence of a string in memory.md. Use whenever a relevant line already exists — especially empty template fields like \"- Name:\". The `find` value must appear EXACTLY ONCE; include enough surrounding text to be unique. Fails if not found or non-unique. Prefer this over memory_append when a matching field exists.",
+      "PRIMARY tool for updating user memory. Replaces ONE exact occurrence of a string in memory.md. Use whenever a relevant line already exists, especially empty template fields like \"- Name:\". The `find` value must appear EXACTLY ONCE; include enough surrounding text to be unique. Fails if not found or non-unique. Prefer this over memory_append when a matching field exists.",
     parameterSchema: {
       type: "object",
       properties: {
@@ -58,7 +58,7 @@ export const memoryTools: Tool[] = [
       const first = existing.indexOf(find);
       if (first === -1) return { error: "not_found", message: "find string did not appear in memory.md" };
       if (existing.indexOf(find, first + 1) !== -1)
-        return { error: "not_unique", message: "find string appears more than once — add surrounding context" };
+        return { error: "not_unique", message: "find string appears more than once, add surrounding context" };
       const updated = existing.slice(0, first) + replace + existing.slice(first + find.length);
       await writeMemory(updated);
       return { ok: true, memory_length_chars: updated.length };
@@ -67,7 +67,7 @@ export const memoryTools: Tool[] = [
   defineTool({
     name: "memory_replace",
     description:
-      "OVERWRITE the user's entire memory.md with new content. Destructive — use only when the user explicitly asks to rewrite/clean up/reorganize their memory. Never use this to \"add\" (that's memory_append). Plain markdown with \"##\" headers.",
+      "OVERWRITE the user's entire memory.md with new content. Destructive, use only when the user explicitly asks to rewrite/clean up/reorganize their memory. Never use this to \"add\" (that's memory_append). Plain markdown with \"##\" headers.",
     parameterSchema: {
       type: "object",
       properties: { content: { type: "string", description: "Full new content of memory.md (markdown)." } },

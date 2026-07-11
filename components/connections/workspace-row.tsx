@@ -11,7 +11,7 @@ import {
 } from "@/lib/integrations/workspace/workspace-bridge";
 import { on } from "@/lib/store/bus";
 
-/** "Local folder" connection — grants the agent scoped file access via the
+/** "Local folder" connection, grants the agent scoped file access via the
  *  File System Access API. Reads are free; writes always ask. */
 export function WorkspaceRow() {
   const [supported, setSupported] = useState(true);
@@ -49,7 +49,7 @@ export function WorkspaceRow() {
           </div>
           <div className="mt-0.5 truncate text-[13px] text-text-2">
             {name
-              ? `Xome can read & write inside "${name}" — writes always ask first.`
+              ? `Xome can read & write inside "${name}", writes always ask first.`
               : "Let Xome work on files in a folder you pick. Reads are free; writes always ask."}
           </div>
         </div>

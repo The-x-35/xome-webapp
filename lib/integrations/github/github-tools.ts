@@ -4,7 +4,7 @@ import { defineTool, type Tool } from "@/lib/agent/tools/tool";
 import { ConsentLevel } from "@/lib/agent/tools/consent";
 import { github } from "@/lib/integrations/github/github-client";
 
-/** GitHub tools — read/search are pre-approved; writes (create issue / comment)
+/** GitHub tools, read/search are pre-approved; writes (create issue / comment)
  *  always ask. Backed by GitHubClient over the OAuth proxy. */
 
 export const githubTools: Tool[] = [

@@ -37,7 +37,7 @@ export interface ChatState {
 }
 
 /**
- * Chat hook — a thin subscriber over the module-level run manager. Runs
+ * Chat hook, a thin subscriber over the module-level run manager. Runs
  * continue in the background when this hook unmounts (navigation), and
  * re-attach when the conversation is opened again.
  */

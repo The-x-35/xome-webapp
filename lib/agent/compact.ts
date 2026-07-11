@@ -22,7 +22,7 @@ function transcriptOf(messages: ChatMessage[]): string {
 /**
  * Compact a long conversation: summarize everything except the most recent
  * turns into one assistant "summary" message. Ported idea from OpenWork's
- * session compaction — especially valuable for small on-device contexts.
+ * session compaction, especially valuable for small on-device contexts.
  * Returns the new message array (summary + recent tail), or null if there is
  * not enough history to be worth compacting.
  */
@@ -39,7 +39,7 @@ export async function compactMessages(args: {
   const toSummarize = messages.slice(0, -KEEP_RECENT);
   const tail = messages.slice(-KEEP_RECENT);
 
-  const prompt = `Summarize this conversation so it can replace the full history as context. Capture: what the user is working on, decisions made, key facts and preferences stated, tool results worth keeping, and anything still unresolved. Be dense and factual — bullet points, no preamble.\n\n${transcriptOf(toSummarize)}`;
+  const prompt = `Summarize this conversation so it can replace the full history as context. Capture: what the user is working on, decisions made, key facts and preferences stated, tool results worth keeping, and anything still unresolved. Be dense and factual, bullet points, no preamble.\n\n${transcriptOf(toSummarize)}`;
 
   let summary = "";
   for await (const ev of provider.generate({

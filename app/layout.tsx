@@ -29,7 +29,7 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Xome — a pocket AI that actually does things",
+    default: "Xome, a pocket AI that actually does things",
     template: "%s · Xome",
   },
   description:

@@ -7,10 +7,10 @@ import { readMemory, writeMemory } from "./memory";
 import { emit } from "./bus";
 
 /**
- * Setup export/import — move a Xome configuration between browsers/machines.
+ * Setup export/import, move a Xome configuration between browsers/machines.
  * SECRETS ARE NEVER EXPORTED: no API keys, no OAuth tokens, no Notion token,
  * and MCP bearer tokens are stripped. (Ported lesson from OpenWork, which had
- * to patch secret leakage out of workspace exports — we start safe.)
+ * to patch secret leakage out of workspace exports, we start safe.)
  */
 
 export interface SetupBundle {
@@ -39,7 +39,7 @@ export async function exportSetup(opts: { includeMemory: boolean }): Promise<Set
     skills: skills.map(({ name, description, triggers, content, enabled }) => ({
       name, description, triggers, content, enabled,
     })),
-    // bearerToken deliberately dropped — reconnect on the new machine.
+    // bearerToken deliberately dropped, reconnect on the new machine.
     mcpServers: mcpServers.map(({ name, url, enabled }) => ({ name, url, enabled })),
     automations: automations.map(({ name, enabled, triggerType, triggerConfig, instruction, allowedWrites, provider }) => ({
       name, enabled, triggerType, triggerConfig, instruction, allowedWrites, provider,

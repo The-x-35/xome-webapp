@@ -3,7 +3,7 @@
  * HTML first, then applies a conservative subset: fenced/inline code, bold,
  * italic, links, headings, blockquotes, ordered/unordered lists, hr. Output is
  * rendered into a .xo-md container (see globals.css). Not a full CommonMark
- * implementation — just enough for chat, with no raw-HTML injection.
+ * implementation, just enough for chat, with no raw-HTML injection.
  */
 function escapeHtml(s: string): string {
   return s

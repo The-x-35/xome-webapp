@@ -66,7 +66,7 @@
   --shadow-card: 0 12px 28px -4px rgba(30, 28, 24, 0.07);
   --shadow-composer: 0 12px 28px -6px rgba(30, 28, 24, 0.07);
 
-  /* accent — overridden by [data-accent] below; indigo default */
+  /* accent, overridden by [data-accent] below; indigo default */
   --accent: #5b57d1;
   --accent-soft: color-mix(in srgb, var(--accent) 13%, #ffffff);
   --accent-text: var(--accent);

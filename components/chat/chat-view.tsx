@@ -59,7 +59,7 @@ export function ChatView({ conversationId }: { conversationId: string | null }) 
 
   // When a brand-new conversation gets its id, navigate to its real route.
   // Runs live in the module-level run manager, so the remount re-attaches to
-  // the in-flight stream seamlessly — and the Next router stays in sync (a
+  // the in-flight stream seamlessly, and the Next router stays in sync (a
   // bare history.replaceState here would desync usePathname and break the
   // "New task" navigation back to /chat).
   const router = useRouter();

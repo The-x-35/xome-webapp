@@ -1,7 +1,7 @@
 import type { Tool } from "./tool";
 
 /**
- * Lexical tool pre-selection — port of lib/agent/tools/tool_selector.dart.
+ * Lexical tool pre-selection, port of lib/agent/tools/tool_selector.dart.
  * Cloud models get the full toolbox; small local models get only the top-K
  * tools whose *name* matches the query (after synonym expansion), to keep the
  * prompt small and avoid hallucinated calls.

@@ -23,7 +23,7 @@ export const INTEGRATIONS: IntegrationDescriptor[] = [
   {
     id: "google",
     label: "Google",
-    tagline: "Gmail & Calendar — read, draft, send, and schedule.",
+    tagline: "Gmail & Calendar, read, draft, send, and schedule.",
     tint: "#4285F4",
     authKind: "google",
     scopes: [

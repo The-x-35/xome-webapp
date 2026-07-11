@@ -3,7 +3,7 @@
 import { defineTool, type Tool } from "@/lib/agent/tools/tool";
 import { ConsentLevel } from "@/lib/agent/tools/consent";
 
-/** On-device tools that have real browser equivalents — port of the
+/** On-device tools that have real browser equivalents, port of the
  *  browser-feasible subset of system_tools/media_tools/notification_tools. */
 
 export const deviceTools: Tool[] = [

@@ -1,4 +1,4 @@
-/** Hand-built stroke icons (no icon font), 1.6px stroke, rounded — matches the
+/** Hand-built stroke icons (no icon font), 1.6px stroke, rounded, matches the
  *  app's rounded Material icon feel. All inherit currentColor. */
 import type { SVGProps } from "react";
 

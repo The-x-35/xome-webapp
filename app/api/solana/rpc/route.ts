@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 /**
  * Solana JSON-RPC proxy. The browser's @solana/web3.js Connection points at this
  * route, so all RPC traffic (balances, blockhash, token accounts, SNS lookups,
- * broadcasts) goes out from the server — the upstream RPC URL / key in
+ * broadcasts) goes out from the server, the upstream RPC URL / key in
  * SOLANA_RPC_URL never reaches the browser. Defaults to the public mainnet RPC.
  */
 export const runtime = "nodejs";

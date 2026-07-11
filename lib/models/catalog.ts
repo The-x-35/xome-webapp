@@ -1,5 +1,5 @@
 /**
- * Curated local-model catalog — the web analogue of assets/models.json.
+ * Curated local-model catalog, the web analogue of assets/models.json.
  * Every `id` is a real WebLLM prebuilt model id (verified against
  * @mlc-ai/web-llm 0.2.x prebuiltAppConfig). `supportsFunctionCalling` gates
  * whether the orchestrator exposes tools to the model (mirrors the app rule
@@ -35,7 +35,7 @@ export const LOCAL_MODELS: LocalModel[] = [
     name: "Llama 3.2 1B Instruct",
     size: "~0.9 GB",
     vram: "~1.2 GB",
-    description: "Tiny and fast — ideal for low-end devices or quick chat. Tool-calling is unreliable at this size, so it runs chat-only.",
+    description: "Tiny and fast, ideal for low-end devices or quick chat. Tool-calling is unreliable at this size, so it runs chat-only.",
     supportsFunctionCalling: false,
     tag: "Lightweight",
   },
@@ -52,7 +52,7 @@ export const LOCAL_MODELS: LocalModel[] = [
     name: "Gemma 2 2B Instruct",
     size: "~1.4 GB",
     vram: "~1.9 GB",
-    description: "Google's Gemma 2 — the closest cousin to the mobile app's on-device brain. Strong chat, chat-only here.",
+    description: "Google's Gemma 2, the closest cousin to the mobile app's on-device brain. Strong chat, chat-only here.",
     supportsFunctionCalling: false,
   },
   {
@@ -69,7 +69,7 @@ export const LOCAL_MODELS: LocalModel[] = [
     name: "Qwen2.5 7B Instruct",
     size: "~4.7 GB",
     vram: "~6 GB",
-    description: "The strongest local option. Near-cloud quality reasoning and tools — needs a capable GPU.",
+    description: "The strongest local option. Near-cloud quality reasoning and tools, needs a capable GPU.",
     supportsFunctionCalling: true,
     tag: "Most capable",
   },

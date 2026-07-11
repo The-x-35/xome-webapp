@@ -4,7 +4,7 @@ import { proxyFetch } from "@/lib/net/proxy";
 import { getNotionToken } from "@/lib/store/secrets";
 
 /**
- * NotionClient — talks to the Notion REST API (https://api.notion.com/v1) via
+ * NotionClient, talks to the Notion REST API (https://api.notion.com/v1) via
  * the integration proxy. Auth uses an INTERNAL INTEGRATION TOKEN pasted by the
  * user (no OAuth), read per-call from getNotionToken(). Notion is on the proxy
  * allowlist so we call proxyFetch directly.

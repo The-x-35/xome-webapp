@@ -22,7 +22,7 @@ export interface HeadlessResult {
 /**
  * Run an instruction headlessly for an automation. Writes are auto-approved ONLY
  * for integrations the automation was pre-approved for (allowedWrites); any
- * other write is declined — mirrors the app's automation consent rule.
+ * other write is declined, mirrors the app's automation consent rule.
  */
 export async function runHeadless(
   instruction: string,

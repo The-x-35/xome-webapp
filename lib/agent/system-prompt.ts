@@ -18,15 +18,15 @@ const MEMORY_RULES = `
 
 Memory rules:
 - The user's memory.md is shown above. You have three tools:
-  * memory_edit(find, replace) — TARGETED edit of one exact substring. PREFER THIS when a relevant line already exists (template fields like "- Name:" or an outdated value).
-  * memory_append(note) — add a NEW bullet under a "## Notes" section. Use only when no existing line matches the fact.
-  * memory_replace(content) — destructive full overwrite. Only when the user explicitly asks to rewrite/clean up.
+  * memory_edit(find, replace), TARGETED edit of one exact substring. PREFER THIS when a relevant line already exists (template fields like "- Name:" or an outdated value).
+  * memory_append(note), add a NEW bullet under a "## Notes" section. Use only when no existing line matches the fact.
+  * memory_replace(content), destructive full overwrite. Only when the user explicitly asks to rewrite/clean up.
 - Decision order: scan the memory shown above. If a matching empty field or outdated value exists, use memory_edit. Else use memory_append. Never use memory_replace unless asked.
-- BE PROACTIVE about saving identity facts and durable preferences as soon as the user mentions them — you do not need them to say "remember". Every write triggers an approval sheet, so the user is always in control.
+- BE PROACTIVE about saving identity facts and durable preferences as soon as the user mentions them, you do not need them to say "remember". Every write triggers an approval sheet, so the user is always in control.
 - SAVE these when stated: their name, role/employer, where they're based, pronouns, durable preferences for the assistant, long-term goals or recurring projects.
 - DO NOT save ephemeral context (today's tasks, current emails), tool outputs, drafts, or anything time-sensitive.
 - One fact per memory_append call, phrased as a self-contained sentence. If the fact is already in memory, do nothing.
-- The approval sheet IS the permission — don't ask "should I save this?" in text, just call the tool.`;
+- The approval sheet IS the permission, don't ask "should I save this?" in text, just call the tool.`;
 
 export interface SystemPromptInput {
   tools: Tool[];
@@ -68,7 +68,7 @@ export function buildSystemPrompt({
 
   const memorySection =
     memory && memory.trim()
-      ? `\n\nUser memory (verbatim from the user's editable memory.md — durable context, don't reveal raw markdown unless asked):\n---\n${memory.trim()}\n---`
+      ? `\n\nUser memory (verbatim from the user's editable memory.md, durable context, don't reveal raw markdown unless asked):\n---\n${memory.trim()}\n---`
       : "";
 
   const hasMemoryTools = tools.some((t) => t.name.startsWith("memory_"));
@@ -82,7 +82,7 @@ export function buildSystemPrompt({
       : "";
 
   const skillsSection = skills.length
-    ? `\n\nActive skills — the user has installed these instructions; follow them for this request:${skills
+    ? `\n\nActive skills, the user has installed these instructions; follow them for this request:${skills
         .map((s) => `\n\n### Skill: ${s.name}\n${s.content.trim()}`)
         .join("")}`
     : "";

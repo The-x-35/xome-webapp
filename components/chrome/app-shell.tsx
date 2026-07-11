@@ -267,20 +267,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         ))}
       </div>
 
-      {/* Trust + actions — honest about where prompts go for the active brain */}
+      {/* Trust + actions, honest about where prompts go for the active brain */}
       <div className="border-t border-border p-3">
         {prefs.activeProvider === "webllm" ? (
           <div className="flex items-center gap-2 rounded-xl bg-success-soft px-3 py-2">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
             <span className="text-[11.5px] leading-snug text-text-2">
-              Running on-device — nothing leaves this browser
+              Running on-device. Nothing leaves this browser.
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
             <span className="text-[11.5px] leading-snug text-text-2">
-              Keys &amp; data stay in this browser — prompts go to {PROVIDER_LABELS[prefs.activeProvider]} with your key
+              Keys &amp; data stay in this browser. Prompts go to {PROVIDER_LABELS[prefs.activeProvider]} with your key.
             </span>
           </div>
         )}

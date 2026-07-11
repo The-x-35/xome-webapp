@@ -119,7 +119,7 @@ export default function SettingsPage() {
             <Row
               key={c.id}
               title={c.label}
-              subtitle={keyState[c.id] ? "API key set" : "No key — add to enable"}
+              subtitle={keyState[c.id] ? "API key set" : "No key, add to enable"}
               right={
                 <div className="flex items-center gap-2">
                   {keyState[c.id] && <Tag kind="success" dot>Ready</Tag>}
@@ -223,7 +223,7 @@ export default function SettingsPage() {
 
         {/* More */}
         <Section title="More">
-          <Row title="Skills" subtitle="Teach Xome repeatable workflows — activate by phrase or /command" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/skills")} />
+          <Row title="Skills" subtitle="Teach Xome repeatable workflows, activate by phrase or /command" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/skills")} />
           <Row title="Memory" subtitle="Edit what Xome durably remembers about you" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/memory")} />
           <Row title="Automations" subtitle="Background triggers and scheduled tasks" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/automations")} />
           <Row title="Privacy" subtitle="What data leaves your browser, and when" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/privacy")} />

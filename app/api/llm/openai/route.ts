@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-/** Stateless GPT proxy — see anthropic/route.ts for the model. */
+/** Stateless GPT proxy, see anthropic/route.ts for the model. */
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
