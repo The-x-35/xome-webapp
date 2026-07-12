@@ -1,77 +1,91 @@
-# Xome for the web
+# Xome
 
-A local-first AI agent that runs in the browser, the web port of the Xome mobile app, for **app.xome.bot**.
+**An AI agent that actually does things.** Xome runs in your browser, connects to your real apps, works on your files, and can act on-chain with a wallet only you control. Every write asks for your approval first.
 
-- **Runs models on-device** via WebGPU (MLC WebLLM), private, free, offline-capable. No server in the data path.
-- **Bring your own cloud model**, paste a Claude, GPT, or Gemini key; it stays in your browser and is forwarded per-request through a stateless proxy.
-- **Connects to your apps**, Gmail, Calendar, Slack, Notion, GitHub, plus any **MCP** server and a set of keyless web/info tools.
-- **Acts with approval**, reads run freely; every write shows a consent sheet first.
-- **Local-first storage**, conversations, memory, keys, and tokens live in your browser's IndexedDB.
+Live at **[app.xome.bot](https://app.xome.bot)** · Docs at **[xome.bot/docs](https://xome.bot/docs)**
 
-Design is ported 1:1 from the app (warm-neutral light/dark, indigo accent with 5 switchable accents) and the marketing site's type system (Fraunces · Geist · JetBrains Mono).
+## What it does
 
-## Stack
+- **Your model, your choice.** Run a WebGPU model fully on-device (private, free, offline-capable), or bring your own Claude, GPT, or Gemini key. Keys stay in your browser and ride out per request through a stateless proxy, never stored server-side.
+- **Real integrations.** Gmail, Google Calendar, Slack, Notion, GitHub, plus local folders you pick and any MCP server.
+- **Acts with approval.** Reads run freely. Every write (send, post, file write, transaction) shows a consent sheet with the exact tool and arguments.
+- **Crypto-native.** A non-custodial Solana wallet built in: balances, sends, swaps via Jupiter, .sol names. Signed client-side; money-moving tools can never be auto-approved.
+- **An agent, not a chatbot.** Live plan checklists, background runs that survive navigation, downloadable artifacts, skills you author in Markdown, workspaces per project, and honest in-tab automations.
+- **Nothing stored on our servers.** Conversations, memory, keys, tokens, skills, and the wallet live in your browser's storage. The only server code is a set of stateless proxies.
 
-Next.js 15 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS v4 · `@mlc-ai/web-llm` (WebGPU) · `idb` (IndexedDB).
+## Quick start (use it)
 
-## Architecture
+Open [app.xome.bot](https://app.xome.bot) in Chrome or Edge, pick a brain (cloud key or on-device model), connect your apps, and give it a task. Full guide: [Quick start](https://xome.bot/docs/quick-start).
+
+## Quick start (run it yourself)
+
+```bash
+git clone https://github.com/xome-bot/Xome-WebApp
+cd Xome-WebApp
+npm install
+npm run dev        # http://localhost:3000
+```
+
+Works immediately with zero configuration: on-device models, cloud models with a pasted key, Notion, MCP servers, the Solana wallet features, skills, local folder access, and all keyless web tools.
+
+OAuth integrations (Google, Slack, GitHub) and your own Solana infra need environment variables:
+
+```bash
+cp .env.example .env.local   # every variable documented inline
+```
+
+Setup guides:
+
+- [Run it locally](https://xome.bot/docs/self-host)
+- [Environment variables](https://xome.bot/docs/env) (including the `*_PROD` dev/prod convention)
+- [OAuth setup](https://xome.bot/docs/oauth-setup) for Google, Slack, and GitHub
+- [Solana setup](https://xome.bot/docs/solana-setup) for Privy wallets and RPC
+- [Deploying](https://xome.bot/docs/deploy) to Vercel or any Node host
+
+## Documentation
+
+| Section | Pages |
+| --- | --- |
+| Getting started | [Introduction](https://xome.bot/docs) · [Quick start](https://xome.bot/docs/quick-start) |
+| Using Xome | [Models](https://xome.bot/docs/models) · [Connections](https://xome.bot/docs/connections) · [MCP servers](https://xome.bot/docs/mcp) · [Solana wallet](https://xome.bot/docs/wallet) · [Skills](https://xome.bot/docs/skills) · [Chat & agent features](https://xome.bot/docs/chat) · [Automations](https://xome.bot/docs/automations) |
+| Self-hosting | [Run it locally](https://xome.bot/docs/self-host) · [Environment variables](https://xome.bot/docs/env) · [OAuth setup](https://xome.bot/docs/oauth-setup) · [Solana setup](https://xome.bot/docs/solana-setup) · [Deploying](https://xome.bot/docs/deploy) |
+| Developers | [Architecture](https://xome.bot/docs/architecture) · [Adding tools](https://xome.bot/docs/add-tools) |
+
+## Architecture in one minute
 
 ```
 app/
-  (app)/            chat · history · connections · settings · automations · privacy  (sidebar shell)
-  onboarding/       first-run local-model download / cloud-key path
+  (app)/          tasks (chat) · history · connections · settings · skills
+  onboarding/     pick a brain: cloud key or on-device model
   api/
-    llm/{anthropic,openai,google}/   stateless streaming proxies (inject user key, pipe SSE)
-    proxy/                           allowlisted integration proxy (attaches token, no storage)
-    oauth/{start,callback/[p],refresh}/   server-side OAuth (PKCE, client secret, popup postMessage)
-    mcp/ · web-fetch/                MCP JSON-RPC + page-text proxies (SSRF-guarded)
+    llm/*         streaming proxies (forward the user's key, pipe SSE)
+    proxy/        allowlisted integration relay (attaches token, stores nothing)
+    oauth/        start · callback · refresh (origin-aware credentials)
+    solana/rpc/   server RPC relay (same-origin only)
 lib/
-  agent/            orchestrator (plan→call→reflect, max 6), providers (webllm+cloud),
-                    tools (registry, consent, selector, builtin, memory), system-prompt, use-chat
-  integrations/     gmail · calendar · slack · notion · github (client + tools) · mcp · web · device
-  store/            IndexedDB (conversations, memory, secrets, mcp, automations) + prefs (localStorage)
-  models/catalog.ts curated WebLLM model list (verified ids + tool-calling support)
-components/         chrome (shell/theme/icons) · chat · connections · settings · ui primitives
+  agent/          orchestrator · run manager · providers · tools · system prompt
+  integrations/   google · slack · github · notion · solana · workspace · mcp · web
+  store/          IndexedDB stores (conversations, skills, secrets, workspaces)
+components/       chrome (shell) · chat · connections · settings · ui
 ```
 
-The `LlmProvider` interface is the key abstraction: the orchestrator never knows whether it's talking to a
-local WebGPU model or a cloud API. Tools are gated by `integrationId` against the enabled set, and small local
-models get a lexically pre-filtered tool subset (port of the app's `tool_selector`).
+The orchestrator (plan, call tools, reflect, repeat, capped at 6 iterations) never knows whether it is talking to a WebGPU model or a cloud API. Tools declare a consent level; the registry only exposes tools for integrations you enabled. Deep dive: [Architecture](https://xome.bot/docs/architecture).
 
-## Run it
+**Stack:** Next.js 15 · React 19 · TypeScript (strict) · Tailwind CSS v4 · [@mlc-ai/web-llm](https://github.com/mlc-ai/web-llm) (WebGPU) · [Privy](https://privy.io) (embedded wallets) · [Jupiter](https://jup.ag) (swaps) · idb (IndexedDB)
 
-```bash
-npm install
-npm run dev          # http://localhost:3000
-```
+## Extending it
 
-**Works immediately, no config:** on-device models (WebGPU browser required, Chrome/Edge 113+), any cloud
-provider with a pasted key, Notion (paste an internal integration token), MCP servers, and the web/info tools
-(search, fetch, wikipedia, weather, currency, units, calculator) + browser tools (clipboard, location, share,
-reminders).
-
-**OAuth integrations (Gmail, Calendar, Slack, GitHub)** activate once you register OAuth apps for your domain
-and set the env vars, copy `.env.example` to `.env.local` and fill in client IDs/secrets. Redirect URIs to
-register:
-
-```
-{origin}/api/oauth/callback/google
-{origin}/api/oauth/callback/slack
-{origin}/api/oauth/callback/github
-```
-
-Until then, Connect shows a clear "not configured" message; everything else still works.
+- **Skills** (no code): teach workflows in Markdown, share them as links. [Skills docs](https://xome.bot/docs/skills)
+- **MCP** (no code): point Xome at any MCP server. [MCP docs](https://xome.bot/docs/mcp)
+- **New tools** (code): tools are plain objects with a JSON schema and an `invoke()`. [Adding tools](https://xome.bot/docs/add-tools)
 
 ## Privacy
 
-Local model = nothing leaves the browser. Cloud model / integration = the request goes out through a stateless
-proxy with your key/token attached for that one call, never stored or logged server-side. History and memory
-are browser-only; clearing them (Settings → Data, or clearing site data) wipes them. See `/privacy` in-app.
+On-device models send nothing anywhere. Cloud models and integrations receive requests directly with your credentials attached for that single call; nothing is persisted or logged server-side. Details: [privacy policy](https://xome.bot/privacy) and the in-app Privacy page.
 
-## Notes & limits
+## Related
 
-- WebGPU is required for on-device models; without it the app guides you to a cloud key.
-- Automations support **Run now** today; scheduled/push triggers need an external relay (not included), the UI
-  is honest about this, mirroring the app.
-- This is a faithful functional port; OAuth client registration for the production domain is the one external
-  step required to light up Google/Slack/GitHub.
+- Marketing site + docs: [xome.bot](https://xome.bot)
+- Mobile apps (iOS and Android): built, heading to the stores
+
+Questions: contact@xome.bot
