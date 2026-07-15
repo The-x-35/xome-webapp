@@ -3,7 +3,12 @@ import type { Tool } from "../tools/tool";
 import { Capability, type GenerateArgs, type LlmEvent, type LlmProvider } from "./provider";
 import { readSSE } from "./sse";
 
-const MODELS = ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano", "gpt-5", "gpt-5-mini", "gpt-4.1", "gpt-4o"];
+const MODELS = [
+  "gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano",
+  "gpt-5", "gpt-5-mini", "gpt-5-nano",
+  "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano",
+  "gpt-4o", "gpt-4o-mini",
+];
 
 function convertMessages(messages: ChatMessage[], systemPrompt?: string): Array<Record<string, unknown>> {
   const out: Array<Record<string, unknown>> = [];

@@ -29,11 +29,11 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Xome, a pocket AI that actually does things",
+    default: "Xome, an AI agent that actually does things",
     template: "%s · Xome",
   },
   description:
-    "Local-first AI agent in your browser. Runs models on-device via WebGPU, or bring your own Claude / GPT / Gemini key. Connects to Gmail, Calendar, Slack, Notion, GitHub, and any MCP server.",
+    "50+ models, 10+ integrations, any MCP server, your own skills. Run models in your browser or bring your own Claude / GPT / Gemini key. Connects Gmail, Calendar, Slack, Notion, GitHub, a Solana wallet, and your files. Every write asks first.",
   applicationName: "Xome",
   appleWebApp: { capable: true, title: "Xome", statusBarStyle: "default" },
   icons: { icon: "/icon.svg" },

@@ -3,7 +3,20 @@ import type { Tool } from "../tools/tool";
 import { Capability, type GenerateArgs, type LlmEvent, type LlmProvider } from "./provider";
 import { readSSE } from "./sse";
 
-const MODELS = ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-4-6", "claude-haiku-4-5"];
+const MODELS = [
+  "claude-fable-5",
+  "claude-opus-4-8",
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-4-6",
+  "claude-sonnet-4-5",
+  "claude-opus-4-5",
+  "claude-opus-4-1",
+  "claude-haiku-4-5",
+];
+
+/** Fable 5 and Opus 4.7+ reject sampling params (400). */
+const NO_TEMPERATURE = /^claude-(fable|mythos)-|^claude-opus-4-[78]/;
 
 function convertMessages(messages: ChatMessage[]): Array<Record<string, unknown>> {
   const out: Array<Record<string, unknown>> = [];
@@ -44,13 +57,14 @@ export const anthropicProvider: LlmProvider = {
   isLocal: false,
 
   async *generate({ messages, tools, systemPrompt, model, options, apiKey, signal }: GenerateArgs): AsyncGenerator<LlmEvent> {
+    const m = model || "claude-sonnet-4-6";
     const body: Record<string, unknown> = {
-      model: model || "claude-sonnet-4-6",
+      model: m,
       max_tokens: options?.maxOutputTokens ?? 4096,
-      temperature: options?.temperature ?? 0.7,
       stream: true,
       messages: convertMessages(messages),
     };
+    if (!NO_TEMPERATURE.test(m)) body.temperature = options?.temperature ?? 0.7;
     if (systemPrompt) body.system = systemPrompt;
     if (tools.length) body.tools = convertTools(tools);
 
