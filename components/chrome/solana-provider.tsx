@@ -3,7 +3,12 @@
 import { useEffect } from "react";
 import bs58 from "bs58";
 import { PrivyProvider, usePrivy } from "@privy-io/react-auth";
-import { useWallets, useSignAndSendTransaction } from "@privy-io/react-auth/solana";
+import {
+  useWallets,
+  useSignAndSendTransaction,
+  useSignMessage,
+  useSignTransaction,
+} from "@privy-io/react-auth/solana";
 import { VersionedTransaction, Transaction } from "@solana/web3.js";
 import { setSolanaWallet } from "@/lib/integrations/solana/wallet-bridge";
 
@@ -16,11 +21,22 @@ import { setSolanaWallet } from "@/lib/integrations/solana/wallet-bridge";
 
 const APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const CHAIN = "solana:mainnet" as const;
+const CHAINS = { mainnet: "solana:mainnet", devnet: "solana:devnet" } as const;
+
+/** A transaction that has not been signed yet serializes only with signature
+ *  verification off. */
+function serializeUnsigned(tx: VersionedTransaction | Transaction): Uint8Array {
+  return tx instanceof VersionedTransaction
+    ? tx.serialize()
+    : new Uint8Array(tx.serialize({ requireAllSignatures: false, verifySignatures: false }));
+}
 
 function WalletBridge() {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const { signAndSendTransaction } = useSignAndSendTransaction();
+  const { signMessage } = useSignMessage();
+  const { signTransaction } = useSignTransaction();
 
   useEffect(() => {
     const wallet = wallets?.[0];
@@ -36,8 +52,20 @@ function WalletBridge() {
         const { signature } = await signAndSendTransaction({ transaction: bytes, wallet, chain: CHAIN });
         return bs58.encode(signature);
       },
+      signMessage: async (message: Uint8Array) => {
+        const { signature } = await signMessage({ message, wallet });
+        return signature;
+      },
+      signTransaction: async (tx, chain = "mainnet") => {
+        const { signedTransaction } = await signTransaction({
+          transaction: serializeUnsigned(tx),
+          wallet,
+          chain: CHAINS[chain],
+        });
+        return signedTransaction;
+      },
     });
-  }, [authenticated, wallets, signAndSendTransaction]);
+  }, [authenticated, wallets, signAndSendTransaction, signMessage, signTransaction]);
 
   return null;
 }

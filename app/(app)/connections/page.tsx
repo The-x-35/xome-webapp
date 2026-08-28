@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { INTEGRATIONS } from "@/lib/integrations/registry";
 import { IntegrationRow } from "@/components/connections/integration-row";
 import { SolanaRow } from "@/components/connections/solana-row";
+import { MagicBlockRow } from "@/components/connections/magicblock-row";
 import { WorkspaceRow } from "@/components/connections/workspace-row";
 import { McpSection } from "@/components/connections/mcp-section";
 import { getOAuth, getNotionToken } from "@/lib/store/secrets";
@@ -51,6 +52,8 @@ export default function ConnectionsPage() {
             {INTEGRATIONS.map((i) =>
               i.authKind === "solana" ? (
                 <SolanaRow key={i.id} descriptor={i} />
+              ) : i.authKind === "magicblock" ? (
+                <MagicBlockRow key={i.id} descriptor={i} />
               ) : (
                 <IntegrationRow
                   key={i.id}

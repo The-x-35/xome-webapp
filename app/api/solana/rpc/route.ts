@@ -5,10 +5,20 @@ import { NextRequest } from "next/server";
  * route, so all RPC traffic (balances, blockhash, token accounts, SNS lookups,
  * broadcasts) goes out from the server, the upstream RPC URL / key in
  * SOLANA_RPC_URL never reaches the browser. Defaults to the public mainnet RPC.
+ *
+ * `?cluster=devnet` selects the devnet upstream, which the MagicBlock private
+ * payment features use. Anything else stays on mainnet, so existing callers
+ * that pass no cluster are unaffected.
  */
 export const runtime = "nodejs";
 
-const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
+const MAINNET_RPC_URL = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
+const DEVNET_RPC_URL = process.env.SOLANA_DEVNET_RPC_URL || "https://api.devnet.solana.com";
+
+function upstreamFor(req: NextRequest): string {
+  const cluster = req.nextUrl.searchParams.get("cluster");
+  return cluster === "devnet" ? DEVNET_RPC_URL : MAINNET_RPC_URL;
+}
 
 /** This route spends OUR upstream RPC quota, so it must only serve the app
  *  itself: same-origin browser requests (sec-fetch-site) or a matching Origin.
@@ -32,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
   const body = await req.text();
   try {
-    const upstream = await fetch(RPC_URL, {
+    const upstream = await fetch(upstreamFor(req), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body,

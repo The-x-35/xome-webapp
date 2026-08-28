@@ -7,6 +7,7 @@ import { slackTools } from "./slack/slack-tools";
 import { notionTools } from "./notion/notion-tools";
 import { githubTools } from "./github/github-tools";
 import { solanaTools } from "./solana/solana-tools";
+import { magicblockTools } from "./magicblock/magicblock-tools";
 
 export interface IntegrationDescriptor {
   id: string;
@@ -15,7 +16,7 @@ export interface IntegrationDescriptor {
   /** Brand-ish hue used by the connections row icon tile. */
   tint: string;
   /** Connect flow: OAuth providers, Notion's pasted token, or Solana via Privy. */
-  authKind: "google" | "slack" | "github" | "notion" | "solana";
+  authKind: "google" | "slack" | "github" | "notion" | "solana" | "magicblock";
   scopes: string[];
 }
 
@@ -80,6 +81,14 @@ export const INTEGRATIONS: IntegrationDescriptor[] = [
     authKind: "solana",
     scopes: [],
   },
+  {
+    id: "magicblock",
+    label: "MagicBlock",
+    tagline: "Private payments, and an on-chain cap on what the agent can spend.",
+    tint: "#8B5CF6",
+    authKind: "magicblock",
+    scopes: [],
+  },
 ];
 
 export function integrationById(id: string): IntegrationDescriptor | undefined {
@@ -95,5 +104,6 @@ export async function buildIntegrationTools(enabled: Set<string>): Promise<Tool[
   if (enabled.has("notion")) tools.push(...notionTools);
   if (enabled.has("github")) tools.push(...githubTools);
   if (enabled.has("solana")) tools.push(...solanaTools);
+  if (enabled.has("magicblock")) tools.push(...magicblockTools);
   return tools;
 }

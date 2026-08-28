@@ -225,6 +225,7 @@ export default function SettingsPage() {
         <Section title="More">
           <Row title="Skills" subtitle="Teach Xome repeatable workflows, activate by phrase or /command" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/skills")} />
           <Row title="Memory" subtitle="Edit what Xome durably remembers about you" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/memory")} />
+          <Row title="Agent spend policy" subtitle="On-chain caps on what the agent can pay out, enforced by Solana" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/settings/policy")} />
           <Row title="Automations" subtitle="Background triggers and scheduled tasks" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/automations")} />
           <Row title="Privacy" subtitle="What data leaves your browser, and when" right={<IconChevron width={18} height={18} className="text-text-3" />} onClick={() => router.push("/privacy")} />
         </Section>

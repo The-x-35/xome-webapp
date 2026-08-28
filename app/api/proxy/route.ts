@@ -36,6 +36,9 @@ const ALLOWED_HOST_SUFFIXES = [
   // Solana, Jupiter aggregator (quotes, swaps, prices). RPC goes through the
   // dedicated /api/solana/rpc route, not this proxy.
   "jup.ag",
+  // MagicBlock private payments. Covers payments.magicblock.app plus the
+  // rollup and TEE endpoints (devnet-tee, devnet-router, us/eu/as).
+  "magicblock.app",
 ];
 
 function hostAllowed(host: string): boolean {

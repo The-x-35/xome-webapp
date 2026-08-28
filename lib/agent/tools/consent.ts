@@ -31,5 +31,9 @@ export type ApprovalGate = (req: ApprovalRequest) => Promise<ApprovalResult>;
 export const NEVER_ALWAYS_ALLOW: ReadonlySet<string> = new Set([
   "solana_send",
   "solana_swap",
+  "private_send",
+  "private_swap",
+  "private_deposit",
+  "private_withdraw",
   "memory_replace",
 ]);

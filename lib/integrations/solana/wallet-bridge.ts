@@ -14,6 +14,17 @@ export interface SolanaWalletHandle {
   /** Sign AND broadcast a transaction via the Privy embedded wallet; resolves
    *  to the transaction signature. */
   signAndSend: (tx: VersionedTransaction | Transaction) => Promise<string>;
+  /** Sign a message without sending anything. Used for the MagicBlock private
+   *  rollup challenge/login, which proves wallet ownership before it will
+   *  answer reads of private state. */
+  signMessage: (message: Uint8Array) => Promise<Uint8Array>;
+  /** Sign a transaction and return the signed bytes rather than broadcasting.
+   *  MagicBlock's Payments API tells us which runtime to submit to (the base
+   *  chain or a specific rollup RPC), so we cannot let the wallet choose. */
+  signTransaction: (
+    tx: VersionedTransaction | Transaction,
+    chain?: "devnet" | "mainnet",
+  ) => Promise<Uint8Array>;
 }
 
 type Listener = (h: SolanaWalletHandle | null) => void;

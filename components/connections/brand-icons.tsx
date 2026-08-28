@@ -57,12 +57,32 @@ export function SolanaMark(p: SVGProps<SVGSVGElement>) {
   );
 }
 
+
+/** MagicBlock. A stylised block being split into a shielded half, standing for
+ *  state that moves onto a rollup and out of public view. */
+export function MagicBlockMark(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width={22} height={22} aria-hidden {...p}>
+      <path
+        d="M12 2.4 20.4 7v10L12 21.6 3.6 17V7L12 2.4Z"
+        fill="none"
+        stroke="#8B5CF6"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M12 2.4 20.4 7v10L12 21.6V2.4Z" fill="#8B5CF6" fillOpacity="0.18" />
+      <path d="M12 7.6 16.6 10v4L12 16.4 7.4 14v-4L12 7.6Z" fill="#8B5CF6" />
+    </svg>
+  );
+}
+
 const MARKS: Record<string, (p: SVGProps<SVGSVGElement>) => React.ReactElement> = {
   google: GoogleMark,
   slack: SlackMark,
   notion: NotionMark,
   github: GithubMark,
   solana: SolanaMark,
+  magicblock: MagicBlockMark,
 };
 
 /** 44×44 rounded tile with the integration's brand mark. */
